@@ -12,8 +12,8 @@ public:
     void deposit(double amount) override;
     void withdraw(double amount) override;
     void display() const override;
-    void saveToFile(std::ofstream& out) const override;
-    void loadFromFile(std::ifstream& in) override;
+    void saveToFile() const override;
+    void loadFromFile() override;
 
     void applyInterest();
 };

@@ -2,7 +2,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
+#include <algorithm>
 
 class Account{
 protected:
@@ -17,8 +19,8 @@ public:
     virtual void deposit(double amount) = 0;
     virtual void withdraw(double amount) = 0;
     virtual void display() const = 0;
-    virtual void saveToFile(std::ofstream& out) const = 0;
-    virtual void loadFromFile(std::ifstream& in) = 0;
+    virtual void saveToFile() const = 0;
+    virtual void loadFromFile() = 0;
 
     int getAccountNumber() const;
     double getBalance() const;
