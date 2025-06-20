@@ -12,13 +12,13 @@ protected:
 
 public:
     Account(int accNum, const std::string& name, double initialBalance);
-    virtual ~Account() = default;
+    virtual ~Account();
 
-    virtual void deposit(double amount);
-    virtual void withdraw(double amount);
-    virtual void display() const;
-    virtual void saveToFile(std::ofstream& out) const;
-    virtual void loadFromFile(std::ifstream& in);
+    virtual void deposit(double amount) = 0;
+    virtual void withdraw(double amount) = 0;
+    virtual void display() const = 0;
+    virtual void saveToFile(std::ofstream& out) const = 0;
+    virtual void loadFromFile(std::ifstream& in) = 0;
 
     int getAccountNumber() const;
     double getBalance() const;
