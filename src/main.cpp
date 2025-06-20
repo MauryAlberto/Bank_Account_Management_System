@@ -2,7 +2,7 @@
 
 int main(){
     Bank bank;
-    bank.loadAllAccounts();
+    /* bank.loadAllAccounts(); */
 
     int choice;
     do{
@@ -10,7 +10,7 @@ int main(){
         // Call corresponding bank method
     }while(choice != 0);
 
-    bank.saveAllAccounts();
+    /* bank.saveAllAccounts(); */
 
     return 0;
 }
