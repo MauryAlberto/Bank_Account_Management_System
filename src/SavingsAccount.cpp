@@ -45,7 +45,7 @@ void SavingsAccount::saveToFile() const {
         
         ss >> accountType >> accNum;
 
-        if(accountType == "SAVINGS" && accNum == this->accountNumber){
+        if(accountType == "SAVINGS" && accNum == accountNumber){
             tempFile << updatedLine.str() << "\n";
             updated = true;
         }else{
@@ -63,7 +63,7 @@ void SavingsAccount::saveToFile() const {
     std::remove("../accounts.dat");
     std::rename("../accounts_temp.dat", "../accounts.dat");
 
-    std::cout << "Account data for account #" << accountNumber << " saved successfully.\n";
+    std::cout << "Account data for savings account #" << accountNumber << " saved successfully.\n";
 }
 
 void SavingsAccount::loadFromFile() {
@@ -83,19 +83,19 @@ void SavingsAccount::loadFromFile() {
 
         ss >> accountType >> accNum >> name >> bal >> rate;
 
-        if(accountType == "SAVINGS" && accNum == this->accountNumber){
+        if(accountType == "SAVINGS" && accNum == accountNumber){
             std::replace(name.begin(), name.end(), '_', ' ');
 
-            this->holderName = name;
-            this->balance = bal;
-            this->interestRate = rate;
+            holderName = name;
+            balance = bal;
+            interestRate = rate;
             
-            std::cout << "Account data for account #" << accountNumber << " loaded successfully.\n";
+            std::cout << "Account data for savings account #" << accountNumber << " loaded successfully.\n";
             return;
         }
     }
 
-    std::cerr << "Account #" << accountNumber << " does not exist.\n";
+    std::cerr << "Savings Account #" << accountNumber << " does not exist.\n";
     return;
 }
 
