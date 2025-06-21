@@ -19,8 +19,8 @@ void SavingsAccount::display() const {
 }
 
 void SavingsAccount::saveToFile() const {
-    std::ifstream File("../accounts.dat");
-    std::ofstream tempFile("../accounts_temp.dat", std::ios::trunc);
+    std::ifstream File("accounts.dat");
+    std::ofstream tempFile("accounts_temp.dat", std::ios::trunc);
 
     if(!File.is_open()){
         std::cerr << "Unable to open accounts.dat\n";
@@ -60,14 +60,14 @@ void SavingsAccount::saveToFile() const {
     File.close();
     tempFile.close();
 
-    std::remove("../accounts.dat");
-    std::rename("../accounts_temp.dat", "../accounts.dat");
+    std::remove("accounts.dat");
+    std::rename("accounts_temp.dat", "accounts.dat");
 
     std::cout << "Account data for savings account #" << accountNumber << " saved successfully.\n";
 }
 
 void SavingsAccount::loadFromFile() {
-    std::ifstream File("../accounts.dat");
+    std::ifstream File("accounts.dat");
 
     if(!File.is_open()){
         std::cerr << "Unable to open accounts.dat\n";

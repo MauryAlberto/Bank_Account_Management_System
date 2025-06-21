@@ -1,9 +1,9 @@
 #include "Account.hpp"
 
 Account::Account(int accNum, const std::string& name, double initialBalance){
-    this->accountNumber = accNum;
-    this->holderName = name;
-    this->balance = initialBalance;
+    accountNumber = accNum;
+    holderName = name;
+    balance = initialBalance;
 }
 
 Account::~Account() = default;
@@ -17,5 +17,5 @@ double Account::getBalance() const{
 }
 
 void Account::setHolderName(const std::string& name){
-    this->holderName = name;
+    holderName = name;
 }
