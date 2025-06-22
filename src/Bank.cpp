@@ -54,19 +54,55 @@ void Bank::createAccount(){
 }
 
 void Bank::deposit(){
+    int accNum;
+    double amount;
 
+    std::cout << "Enter Account Number: ";
+    std::cin >> accNum;
+
+    Account* acc = findAccount(accNum);
+    if(acc != nullptr){
+        std::cout << "Enter Deposit Amount: ";
+        std::cin >> amount;
+
+        acc->deposit(amount);
+        std::cout << "New Balance: $" << acc->getBalance() << std::endl;
+    }
 }
 
 void Bank::withdraw(){
+    int accNum;
+    double amount;
 
+    std::cout << "Enter Account Number: ";
+    std::cin >> accNum;
+
+    Account* acc = findAccount(accNum);
+    if(acc != nullptr){
+        std::cout << "Enter Withdraw Amount: ";
+        std::cin >> amount;
+
+        acc->withdraw(amount);
+        std::cout << "New Balance: $" << acc->getBalance() << std::endl;
+    }
 }
 
 void Bank::displayAccount(){
+    int accNum;
 
+    std::cout << "Enter Account Number: ";
+    std::cin >> accNum;
+
+    Account* acc = findAccount(accNum);
+    if(acc != nullptr){
+        acc->display();
+    }
 }
 
 void Bank::displayAllAccounts(){
-
+    for(auto& acc : accounts){
+        acc->display();
+    }
 }
 
 void Bank::closeAccount(){
@@ -86,5 +122,12 @@ void Bank::loadAllAccounts(){
 }
 
 Account* Bank::findAccount(int accNum){
+    for(auto& acc : accounts){
+        if(acc->getAccountNumber() == accNum){
+            return acc.get();
+        }
+    }
+
+    std::cerr << "Acount #" << accNum << " does not exist.\n";
     return nullptr;
 }
