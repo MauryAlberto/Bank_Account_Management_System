@@ -4,6 +4,7 @@
 #include "CheckingAccount.hpp"
 #include <vector>
 #include <memory>
+#include <chrono>
 
 class Bank{
 private:
@@ -21,5 +22,6 @@ public:
     void saveAllAccounts();
     void loadAllAccounts();
 
+    bool accountExists(int accNum);
     Account* findAccount(int accNum);
 };

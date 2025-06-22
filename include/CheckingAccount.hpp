@@ -4,9 +4,9 @@
 
 class CheckingAccount : public Account{
 private:
-    double overdraftLimit;
+    int overdraftLimit;
 public:
-    CheckingAccount(int accNum, const std::string& name, double balance, double limit) : Account(accNum, name, balance), overdraftLimit(limit) {};
+    CheckingAccount(int accNum, const std::string& name, double balance, int limit) : Account(accNum, name, balance), overdraftLimit(limit) {};
     
     void deposit(double amount) override;
     void withdraw(double amount) override;
