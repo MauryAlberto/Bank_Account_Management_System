@@ -1,73 +1,50 @@
 #include "Bank.hpp"
 
+void displayMenu(){
+    std::cout << "\n=== Bank Account Management System ===\n";
+    std::cout << "1. Create Account\n";
+    std::cout << "2. Deposit\n";
+    std::cout << "3. Withdraw\n";
+    std::cout << "4. Display Account\n";
+    std::cout << "5. Display All Accounts\n";
+    std::cout << "6. Modify Account\n";
+    std::cout << "7. Close Account\n";
+    std::cout << "8. Save All Accounts\n";
+    std::cout << "9. Exit\n";
+    std::cout << "Select an option: ";
+}
+
 int main(){
-
-    SavingsAccount acc1(100, "Maury Alberto", 1000, 0.02);
-    CheckingAccount acc2(101, "First Middle Last", 2000, 100);
-
-    acc1.display();
-    acc2.display();
-
-    acc1.saveToFile();
-    acc2.saveToFile();
-
-    acc1.deposit(100);
-    acc2.deposit(100);
-
-    acc1.display();
-    acc2.display();
-
-    SavingsAccount temp_acc1(100, "", 0, 0);
-    CheckingAccount temp_acc2(101, "", 0, 0);
-    
-    temp_acc1.loadFromFile();
-    temp_acc2.loadFromFile();
-
-    temp_acc1.display();
-    temp_acc2.display();
-
-    std::cout << acc1.getAccountNumber() << std::endl;
-    std::cout << acc2.getAccountNumber() << std::endl;
-
-    acc1.applyInterest();
-    acc2.withdraw(2000);
-
-    acc1.display();
-    acc2.display();
-
-    acc1.setHolderName("John Doe");
-    acc2.setHolderName("Another Name");
-
-    acc1.display();
-    acc2.display();
-
-    acc1.withdraw(1000);
-    acc2.withdraw(100);
-
-    acc1.display();
-    acc2.display();
-
-    acc2.withdraw(100);
-    acc2.display();
-
-    std::cout << acc1.getBalance() << std::endl;
-    std::cout << acc2.getBalance() << std::endl;
-
-    /* acc2.withdraw(100); */ //exceeding over draft limit 
-    /* acc2.display(); */
-
-    /* acc1.withdraw(1000); */ // withdrawing more than the current balance
-
-    /* Bank bank;
+    Bank bank;
     bank.loadAllAccounts();
 
     int choice;
     do{
-        // Display menu
-        // Call corresponding bank method
-    }while(choice != 0);
+        displayMenu();
+        std::cin >> choice;
 
-    bank.saveAllAccounts(); */
+        switch(choice){
+            case 1: bank.createAccount(); break;
+
+            case 2: bank.deposit(); break;
+
+            case 3: bank.withdraw(); break;
+
+            case 4: bank.displayAccount(); break;
+
+            case 5: bank.displayAllAccounts(); break;
+
+            case 6: bank.modifyAccount(); break;
+
+            case 7: bank.closeAccount(); break;
+
+            case 8: bank.saveAllAccounts(); std::cout << "Accounts saved successfully.\n"; break;
+
+            case 9: bank.saveAllAccounts(); std::cout << "Goodbye!\n"; break;
+
+            default: std::cout << "Invalid option. Try again.\n";
+        }        
+    }while(choice != 9);
 
     return 0;
 }
