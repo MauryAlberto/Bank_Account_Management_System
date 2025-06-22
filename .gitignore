@@ -1,0 +1,3 @@
+build/*.o
+
+bank_system.exe
