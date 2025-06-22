@@ -26,6 +26,37 @@ int main(){
     temp_acc1.display();
     temp_acc2.display();
 
+    std::cout << acc1.getAccountNumber() << std::endl;
+    std::cout << acc2.getAccountNumber() << std::endl;
+
+    acc1.applyInterest();
+    acc2.withdraw(2000);
+
+    acc1.display();
+    acc2.display();
+
+    acc1.setHolderName("John Doe");
+    acc2.setHolderName("Another Name");
+
+    acc1.display();
+    acc2.display();
+
+    acc1.withdraw(1000);
+    acc2.withdraw(100);
+
+    acc1.display();
+    acc2.display();
+
+    acc2.withdraw(100);
+    acc2.display();
+
+    std::cout << acc1.getBalance() << std::endl;
+    std::cout << acc2.getBalance() << std::endl;
+
+    /* acc2.withdraw(100); */ //exceeding over draft limit 
+    /* acc2.display(); */
+
+    /* acc1.withdraw(1000); */ // withdrawing more than the current balance
 
     /* Bank bank;
     bank.loadAllAccounts();
