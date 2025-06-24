@@ -21,8 +21,11 @@ public:
     virtual void display() const = 0;
     virtual void saveToFile() const = 0;
     virtual void loadFromFile() = 0;
+    virtual std::string getHolderName() = 0;
+    virtual std::string getAccountType() = 0;
 
     int getAccountNumber() const;
     double getBalance() const;
     void setHolderName(const std::string& name);
+    void setBalance(double newBalance);
 };
