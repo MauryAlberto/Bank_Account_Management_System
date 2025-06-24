@@ -120,3 +120,7 @@ std::string SavingsAccount::getHolderName() const {
 std::string SavingsAccount::getAccountType() const {
     return "SAVINGS";
 }
+
+double SavingsAccount::getInterestRate(){
+    return interestRate;
+}

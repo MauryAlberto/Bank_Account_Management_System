@@ -109,3 +109,7 @@ std::string CheckingAccount::getHolderName() const {
 std::string CheckingAccount::getAccountType() const {
     return "CHECKING";
 }
+
+int CheckingAccount::getOverDraftLimit(){
+    return overdraftLimit;
+}

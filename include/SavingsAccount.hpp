@@ -19,4 +19,5 @@ public:
 
     void applyInterest();
     void setInterestRate(double newRate);
+    double getInterestRate();
 };

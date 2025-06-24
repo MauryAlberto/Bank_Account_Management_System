@@ -17,4 +17,5 @@ public:
     std::string getAccountType() const override;
 
     void setOverDraftLimit(int newLimit);
+    int getOverDraftLimit();
 };
