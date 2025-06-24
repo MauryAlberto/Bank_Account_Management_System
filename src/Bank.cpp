@@ -16,6 +16,7 @@ T getValidatedInput(const std::string& prompt){
             break;
         }else{
             std::cerr << "Invalid input. Please enter a value of type " << typeid(T).name() << ".\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
         }
     }
 
@@ -34,10 +35,20 @@ std::string getValidatedInput<std::string>(const std::string& prompt){
             break;
         }else{
             std::cerr << "Invalid input. Please enter a non-empty string.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
         }
     }
 
     return input;
+}
+
+bool containsNumber(const std::string& str) {
+    for (char ch : str) {
+        if (std::isdigit(ch)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Bank::accountExists(int accNum){
@@ -63,9 +74,6 @@ void Bank::createAccount(){
         return;
     }
 
-    /* std::cout << "Enter Account Number: ";
-    std::cin >> accNum;
-    std::cin.ignore(); */
     accNum = getValidatedInput<int>("Enter Account Number: ");
 
     // call accountExists() here to check if account already exists
@@ -75,29 +83,39 @@ void Bank::createAccount(){
         return;
     }
 
-    /* std::cout << "Enter Holder Name: ";
-    std::getline(std::cin, name); */
     name = getValidatedInput<std::string>("Enter Holder Name: ");
-    
-    /* std::cout << "Enter Initial Balance: ";
-    std::cin >> balance; */
+    while(containsNumber(name) || name.size() > 50){
+        std::cerr << "Error: Invalid holder name.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        name = getValidatedInput<std::string>("Enter Holder Name: ");
+    }
+
     balance = getValidatedInput<double>("Enter Initial Balance: ");
-    if(balance <= 0){
-        std::cerr << "Must enter initial balance greater than 0.\n";
-        return;
+    while(balance <= 0.0){
+        std::cerr << "Error: Initial balance must be greater than 0.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        balance = getValidatedInput<double>("Enter Initial Balance: ");
     }
 
     if(typeChoice == 1){
         double rate;
         /* std::cout << "Enter Interest Rate (e.g., 0.02 for 2%): ";
         std::cin >> rate; */
-        rate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2%): ");
+        rate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
+        while(rate < 0 || rate > 0.055){
+            std::cerr << "Error: Invalid interest rate.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            rate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
+        }
         accounts.push_back(std::make_unique<SavingsAccount>(accNum, name, balance, rate));
     }else if(typeChoice == 2){
         int overDraft;
-        /* std::cout << "Enter Overdraft limit: ";
-        std::cin >> overDraft; */
-        overDraft = getValidatedInput<int>("Enter Overdraft Limit: ");
+        overDraft = getValidatedInput<int>("Enter Overdraft Limit ($5000 max limit): ");
+        while(overDraft < 0 || overDraft > 5000){
+            std::cerr << "Error: Invalid overdraft limit.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            overDraft = getValidatedInput<int>("Enter Overdraft Limit ($5000 max limit): ");
+        }
         accounts.push_back(std::make_unique<CheckingAccount>(accNum, name, balance, overDraft));
     }
 
@@ -116,6 +134,11 @@ void Bank::deposit(){
     Account* acc = findAccount(accNum);
     if(acc != nullptr){
         amount = getValidatedInput<double>("Enter Deposit Amount: ");
+        while(amount < 0.0){
+            std::cerr << "Error: Cannot deposit negative amount.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            amount = getValidatedInput<double>("Enter Deposit Amount: ");
+        }
         acc->deposit(amount);
         std::cout << "New Balance: $" << acc->getBalance() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -131,9 +154,12 @@ void Bank::withdraw(){
     Account* acc = findAccount(accNum);
     if(acc != nullptr){
         amount = getValidatedInput<double>("Enter Withdraw Amount: ");
-
+        while(amount < 0.0){
+            std::cerr << "Error: Cannot withdraw negative amount.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            amount = getValidatedInput<double>("Enter Withdraw Amount: ");
+        }
         acc->withdraw(amount);
-        std::cout << "New Balance: $" << acc->getBalance() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
@@ -169,10 +195,10 @@ void Bank::closeAccount(){
                 });
     
     if(it != accounts.end()){
-        std::cout << "Closing account $" << accNum << "...\n";
+        std::cout << "Closing account #" << accNum << "...\n";
         accounts.erase(it); // Unique pointer is deleted here
-        saveAllAccounts(); // update the persistent file
         std::cout << "Account closed successfully.\n";
+        saveAllAccounts(); // update the persistent file
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }else{
         std::cerr << "Account #" << accNum << " not found.\n";
@@ -192,8 +218,8 @@ void Bank::modifyAccount(){
     }
 
     std::cout << "Account found:\n";
-    std::this_thread::sleep_for(std::chrono::seconds(2));
     acc->display();
+    std::this_thread::sleep_for(std::chrono::seconds(2));
 
     std::cout << "\nChoose what to modify:\n";
     std::cout << "1. Holder Name\n";
@@ -208,13 +234,18 @@ void Bank::modifyAccount(){
     switch(choice){
         case 1:{
             std::string newName;
-            newName = getValidatedInput<std::string>("Enter new holder name: ");
+            newName = getValidatedInput<std::string>("Enter New Holder Name: ");
             acc->setHolderName(newName);
             break;
         }
         case 2:{
             double newBalance;
-            newBalance= getValidatedInput<double>("Enter a new balance:");
+            newBalance= getValidatedInput<double>("Enter New Balance:");
+            while(newBalance <= 0.0){
+                std::cerr << "Error: New balance must be greater than 0.\n";
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                newBalance = getValidatedInput<double>("Enter New Balance: ");
+            }
             acc->setBalance(newBalance);
             break;
         }
@@ -222,8 +253,14 @@ void Bank::modifyAccount(){
             auto* savings = dynamic_cast<SavingsAccount*>(acc);
             if(savings){
                 double newRate;
-                newRate = getValidatedInput<double>("Enter a new interest rate:");
+                newRate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
+                while(newRate < 0){
+                    std::cerr << "Error: Invalid interest rate.\n";
+                    std::this_thread::sleep_for(std::chrono::seconds(2));
+                    newRate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
+                }
                 savings->setInterestRate(newRate);
+                break;
             }else{
                 std::cerr << "This is not a savings account.\n";
                 std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -235,15 +272,22 @@ void Bank::modifyAccount(){
             auto* checking = dynamic_cast<CheckingAccount*>(acc);
             if(checking){
                 int newLimit;
-                newLimit= getValidatedInput<int>("Enter new overdraft limit: ");
+                newLimit= getValidatedInput<int>("Enter new overdraft limit ($5000 max limit): ");
+                while(newLimit < 0 || newLimit > 5000){
+                    std::cerr << "Error: Invalid overdraft limit.\n";
+                    std::this_thread::sleep_for(std::chrono::seconds(2));
+                    newLimit = getValidatedInput<int>("Enter new overdraft limit ($5000 max limit): ");
+                }
                 checking->setOverDraftLimit(newLimit);
+                break;
             }else{
                 std::cerr << "This is not a checking account.\n";
                 std::this_thread::sleep_for(std::chrono::seconds(2));
+                return;
             }
         }
         default:{
-            std::cerr << "Invalid.\n";
+            std::cerr << "Invalid choice.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
             return;
         }

@@ -8,6 +8,7 @@ void CheckingAccount::deposit(double amount) {
 void CheckingAccount::withdraw(double amount) {
     if(balance + overdraftLimit - amount >= 0){
         balance -= amount;
+        std::cout << "New Balance: $" << balance << std::endl;
         saveToFile();
     }else{
         std::cerr << "Overdraft limit exceeded.\n";

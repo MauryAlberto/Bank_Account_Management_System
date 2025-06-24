@@ -8,6 +8,7 @@ void SavingsAccount::deposit(double amount) {
 void SavingsAccount::withdraw(double amount) {
     if(balance - amount >= 0){
         balance -= amount;
+        std::cout << "New Balance: $" << balance << std::endl;
         saveToFile();
     }else{
         std::cerr << "Insufficient funds in savings account.\n";
