@@ -97,3 +97,15 @@ void CheckingAccount::loadFromFile() {
     std::cerr << "Checking Account #" << accountNumber << " does not exist.\n";
     return;
 }
+
+void CheckingAccount::setOverDraftLimit(int newLimit) {
+    overdraftLimit = newLimit;
+}
+
+std::string CheckingAccount::getHolderName() const {
+    return holderName;
+}
+
+std::string CheckingAccount::getAccountType() const {
+    return "CHECKING";
+}

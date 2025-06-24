@@ -99,7 +99,7 @@ void SavingsAccount::loadFromFile() {
     return;
 }
 
-void SavingsAccount::applyInterest(){
+void SavingsAccount::applyInterest() {
     double interest = balance * interestRate;
     balance += interest;
 
@@ -107,4 +107,16 @@ void SavingsAccount::applyInterest(){
     std::cout << "New balance: $" << balance << "\n";
 
     saveToFile();
+}
+
+void SavingsAccount::setInterestRate(double newRate) {
+    interestRate = newRate;
+}
+
+std::string SavingsAccount::getHolderName() const {
+    return holderName;
+}
+
+std::string SavingsAccount::getAccountType() const {
+    return "SAVINGS";
 }
