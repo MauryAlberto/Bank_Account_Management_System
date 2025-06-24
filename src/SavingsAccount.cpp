@@ -10,7 +10,8 @@ void SavingsAccount::withdraw(double amount) {
         balance -= amount;
         saveToFile();
     }else{
-        throw std::runtime_error("Insufficient funds in savings account.");
+        std::cerr << "Insufficient funds in savings account.\n";
+        return;
     }
 }
 

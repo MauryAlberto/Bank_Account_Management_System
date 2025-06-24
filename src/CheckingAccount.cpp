@@ -10,7 +10,8 @@ void CheckingAccount::withdraw(double amount) {
         balance -= amount;
         saveToFile();
     }else{
-        throw std::runtime_error("Overdraft limit exceeded.");
+        std::cerr << "Overdraft limit exceeded.\n";
+        return;
     }
 }
 
