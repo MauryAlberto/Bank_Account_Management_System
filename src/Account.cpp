@@ -19,3 +19,7 @@ double Account::getBalance() const{
 void Account::setHolderName(const std::string& name){
     holderName = name;
 }
+
+void Account::setBalance(double newBalance){
+    balance = newBalance;
+}

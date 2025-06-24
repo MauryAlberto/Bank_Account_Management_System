@@ -2,6 +2,7 @@
 
 #include "SavingsAccount.hpp"
 #include "CheckingAccount.hpp"
+#include <algorithm>
 #include <vector>
 #include <memory>
 #include <chrono>
