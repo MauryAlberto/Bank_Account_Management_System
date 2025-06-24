@@ -205,12 +205,69 @@ void Bank::saveAllAccounts(){
     }
 
     for(const auto& acc : accounts){
-        // File << acc->getAccountType() << acc->getAccountNumber() << acc->getHolderName() << acc->getBalance() << 
+        std::string name = acc->getHolderName();
+        std::replace(name.begin(), name.end(), ' ', '_');
+
+        File << acc->getAccountType() << " " << acc->getAccountNumber()
+             << " " << name << " " << acc->getBalance() << " ";
+        
+        if(acc->getAccountType() == "SAVINGS"){
+            auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
+            if(savings){
+                File << savings->getInterestRate();
+            }
+        }else if(acc->getAccountType() == "CHECKING"){
+            auto* checking = dynamic_cast<CheckingAccount*>(acc.get());
+            if(checking){
+                File << checking->getOverDraftLimit();
+            }
+        }
+
+        File << "\n";
     }
+
+    File.close();
+    std::remove("accounts.dat");
+    std::rename("accounts_temp.dat", "accounts.dat");
+
+    std::cout << "All accounts saved succesfully.\n";
 }
 
 void Bank::loadAllAccounts(){
+    std::ifstream File("accounts.dat");
 
+    if(!File.is_open()){
+        std::cerr << "Unable to open accounts.dat\n";
+        return;
+    }
+
+    accounts.clear();
+    std::string line;
+    while(std::getline(File, line)){
+        std::stringstream ss(line);
+        std::string name, accountType;
+        int accNum;
+        double balance;
+
+        ss >> accountType >> accNum >> name >> balance;
+        std::replace(name.begin(), name.end(), '_', ' ');
+
+        if(accountType == "SAVINGS"){
+            double rate;
+            ss >> rate;
+            accounts.push_back(std::make_unique<SavingsAccount>(accNum, name, balance, rate));
+        }else if(accountType == "CHECKING"){
+            int overDraft;
+            ss >> overDraft;
+            accounts.push_back(std::make_unique<CheckingAccount>(accNum, name, balance, overDraft));
+        }else{
+            std::cerr << "Unknown account type: " << accountType << "\n";
+            return;
+        }
+    }
+
+    File.close();
+    std::cout << "All files loaded succesffully.\n";
 }
 
 Account* Bank::findAccount(int accNum){
