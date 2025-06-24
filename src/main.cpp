@@ -2,6 +2,7 @@
 
 void displayMenu(){
     std::cout << "\n=== Bank Account Management System ===\n";
+    std::cout << "0. Exit\n";
     std::cout << "1. Create Account\n";
     std::cout << "2. Deposit\n";
     std::cout << "3. Withdraw\n";
@@ -10,7 +11,7 @@ void displayMenu(){
     std::cout << "6. Modify Account\n";
     std::cout << "7. Close Account\n";
     std::cout << "8. Save All Accounts\n";
-    std::cout << "9. Exit\n";
+    std::cout << "9. Apply Interest\n";
     std::cout << "Select an option: ";
 }
 
@@ -24,6 +25,8 @@ int main(){
         std::cin >> choice;
 
         switch(choice){
+            case 0: std::cin.ignore(); bank.saveAllAccounts(); std::cout << "Goodbye!\n"; break;
+
             case 1: std::cin.ignore(); bank.createAccount(); break;
 
             case 2: std::cin.ignore(); bank.deposit(); break;
@@ -40,11 +43,11 @@ int main(){
 
             case 8: std::cin.ignore(); bank.saveAllAccounts(); std::cout << "Accounts saved successfully.\n"; break;
 
-            case 9: std::cin.ignore(); bank.saveAllAccounts(); std::cout << "Goodbye!\n"; break;
+            case 9: std::cin.ignore(); bank.applyInterestChoice(); break;
 
             default: std::cout << "Invalid option. Try again.\n";
         }        
-    }while(choice != 9);
+    }while(choice != 0);
 
     return 0;
 }

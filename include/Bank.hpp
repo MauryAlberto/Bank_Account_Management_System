@@ -26,6 +26,8 @@ public:
     void saveAllAccounts();
     void loadAllAccounts();
 
+    void applyInterestChoice();
+
     bool accountExists(int accNum);
     Account* findAccount(int accNum);
 };

@@ -387,3 +387,40 @@ Account* Bank::findAccount(int accNum){
     std::this_thread::sleep_for(std::chrono::seconds(2));
     return nullptr;
 }
+
+void Bank::applyInterestChoice(){
+    std::string input;
+    std::cout << "Apply interest to ONE account or ALL accounts? (Enter ONE or ALL): ";
+    std::getline(std::cin, input);
+
+    if(input == "ONE"){
+        int accNum;
+        std::cout << "Enter Account Number: ";
+        std::cin >> accNum;
+        Account* acc = findAccount(accNum);
+        if(acc == nullptr){
+            std::cerr << "Account not found.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return;
+        }
+
+        auto* savings = dynamic_cast<SavingsAccount*>(acc);
+        if(savings){
+            savings->applyInterest();
+        }else{
+            std::cerr << "This is not a savings account.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return;
+        }
+    }else if(input == "ALL"){
+        for(const auto& acc : accounts){
+            auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
+            if(savings){
+                savings->applyInterest();
+            }
+        }
+    }else{
+        std::cerr << "Invalid choice.\n";
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+}
