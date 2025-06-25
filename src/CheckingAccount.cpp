@@ -112,6 +112,6 @@ std::string CheckingAccount::getAccountType() const {
     return "CHECKING";
 }
 
-int CheckingAccount::getOverDraftLimit(){
+int CheckingAccount::getOverDraftLimit() const{
     return overdraftLimit;
 }

@@ -123,6 +123,6 @@ std::string SavingsAccount::getAccountType() const {
     return "SAVINGS";
 }
 
-double SavingsAccount::getInterestRate(){
+double SavingsAccount::getInterestRate() const{
     return interestRate;
 }
