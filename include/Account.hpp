@@ -7,11 +7,6 @@
 #include <algorithm>
 
 class Account{
-protected:
-    int accountNumber;
-    std::string holderName;
-    double balance;
-
 public:
     Account(int accNum, const std::string& name, double initialBalance);
     virtual ~Account();
@@ -28,4 +23,8 @@ public:
     double getBalance() const;
     void setHolderName(const std::string& name);
     void setBalance(double newBalance);
+protected:
+    int accountNumber;
+    std::string holderName;
+    double balance;
 };

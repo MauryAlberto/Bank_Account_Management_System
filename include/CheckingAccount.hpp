@@ -3,8 +3,6 @@
 #include "Account.hpp"
 
 class CheckingAccount : public Account{
-private:
-    int overdraftLimit;
 public:
     CheckingAccount(int accNum, const std::string& name, double balance, int limit) : Account(accNum, name, balance), overdraftLimit(limit) {};
     
@@ -18,4 +16,6 @@ public:
 
     void setOverDraftLimit(int newLimit);
     int getOverDraftLimit();
+private:
+    int overdraftLimit;
 };

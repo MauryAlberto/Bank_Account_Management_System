@@ -11,13 +11,6 @@
 #include <typeinfo>
 
 class Bank{
-private:
-    std::vector<std::unique_ptr<Account>> accounts;
-    std::string dataFile = "accounts.dat";
-
-    Bank() = default; // private constructor
-    Bank(const Bank&) = delete; // delete copy constructor
-    Bank& operator=(const Bank&) = delete; // delete copy assignment operator
 public:
     static Bank& getInstance(){ // static accessor
         static Bank instance;
@@ -39,4 +32,11 @@ public:
 
     bool accountExists(int accNum);
     Account* findAccount(int accNum);
+private:
+    std::vector<std::unique_ptr<Account>> accounts;
+    std::string dataFile = "accounts.dat";
+
+    Bank() = default; // private constructor
+    Bank(const Bank&) = delete; // delete copy constructor
+    Bank& operator=(const Bank&) = delete; // delete copy assignment operator
 };
