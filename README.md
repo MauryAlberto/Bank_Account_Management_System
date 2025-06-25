@@ -142,10 +142,10 @@ accounts.push_back(std::make_unique<SavingsAccount>(...));
 
 ```cpp
 std::stringstream ss(line);
-std::string type;
+std::string type, name;
 int accNum;
 double balance;
-ss >> type >> accNum >> balance;
+ss >> type >> accNum >> name >> balance;
 ```
 
 ---
