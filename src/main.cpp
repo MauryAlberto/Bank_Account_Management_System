@@ -16,36 +16,61 @@ void displayMenu(){
 }
 
 int main(){
-    Bank bank;
+    Bank &bank = Bank::getInstance();
     bank.loadAllAccounts();
 
     int choice;
     do{
         displayMenu();
         std::cin >> choice;
+        std::cin.ignore();
 
         switch(choice){
-            case 0: std::cin.ignore(); bank.saveAllAccounts(); std::cout << "Goodbye!\n"; break;
-
-            case 1: std::cin.ignore(); bank.createAccount(); break;
-
-            case 2: std::cin.ignore(); bank.deposit(); break;
-
-            case 3: std::cin.ignore(); bank.withdraw(); break;
-
-            case 4: std::cin.ignore(); bank.displayAccount(); break;
-
-            case 5: std::cin.ignore(); bank.displayAllAccounts(); break;
-
-            case 6: std::cin.ignore(); bank.modifyAccount(); break;
-
-            case 7: std::cin.ignore(); bank.closeAccount(); break;
-
-            case 8: std::cin.ignore(); bank.saveAllAccounts(); std::cout << "Accounts saved successfully.\n"; break;
-
-            case 9: std::cin.ignore(); bank.applyInterestChoice(); break;
-
-            default: std::cout << "Invalid option. Try again.\n";
+            case 0: 
+            {
+                bank.saveAllAccounts();
+                std::cout << "Goodbye!\n"; break;
+            }
+            case 1:{
+                bank.createAccount();
+                break;
+            }
+            case 2:{
+                bank.deposit();
+                break;
+            }
+            case 3:{
+                bank.withdraw();
+                break;
+            }
+            case 4:{
+                bank.displayAccount();
+                break;
+            }
+            case 5:{
+                bank.displayAllAccounts();
+                break;
+            }
+            case 6:{
+                bank.modifyAccount();
+                break;
+            }
+            case 7:{
+                bank.closeAccount();
+                break;
+            }
+            case 8:{
+                bank.saveAllAccounts();
+                std::cout << "Accounts saved successfully.\n";
+                break;
+            }
+            case 9:{
+                bank.applyInterestChoice();
+                break;
+            }
+            default:{
+                std::cout << "Invalid option. Try again.\n";
+            }
         }        
     }while(choice != 0);
 
