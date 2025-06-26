@@ -2,6 +2,7 @@
 
 #include <sw/redis++/redis++.h>
 #include <memory>
+#include <iterator>
 #include <unordered_map>
 #include "SavingsAccount.hpp"
 #include "CheckingAccount.hpp"

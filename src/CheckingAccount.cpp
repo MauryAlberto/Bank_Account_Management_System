@@ -30,14 +30,16 @@ std::string CheckingAccount::getAccountType() const {
     return "CHECKING";
 }
 
-int CheckingAccount::getOverDraftLimit() const{
+int CheckingAccount::getOverDraftLimit() const {
     return overdraftLimit;
 }
 
-std::string CheckingAccount::serialize() const {
-    std::stringstream ss;
-    std::string safeName = holderName;
-    std::replace(safeName.begin(), safeName.end(), ' ', '_');
-    ss << "CHECKING " << accountNumber << " " << safeName << " " << balance << " " << overdraftLimit;
-    return ss.str();
+json CheckingAccount::toJson() const {
+    return {
+        {"type", "CHECKING"},
+        {"accountNumber", accountNumber},
+        {"holderName", holderName},
+        {"balance", balance},
+        {"overdraftLimit", overdraftLimit}
+    };
 }

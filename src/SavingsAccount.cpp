@@ -42,10 +42,12 @@ double SavingsAccount::getInterestRate() const {
     return interestRate;
 }
 
-std::string SavingsAccount::serialize() const {
-    std::stringstream ss;
-    std::string safeName = holderName;
-    std::replace(safeName.begin(), safeName.end(), ' ', '_');
-    ss << "SAVINGS " << accountNumber << " " << safeName << " " << balance << " " << interestRate;
-    return ss.str();
+json SavingsAccount::toJson() const {
+    return {
+        {"type", "SAVINGS"},
+        {"accountNumber", accountNumber},
+        {"holderName", holderName},
+        {"balance", balance},
+        {"interestRate", interestRate}
+    };
 }

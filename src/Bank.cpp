@@ -375,11 +375,19 @@ void Bank::applyInterestChoice(){
 }
 
 void Bank::exportAllAccountsToFile(){
-    std::ofstream File("accounts_export.dat", std::ios::trunc);
-    for(const auto& acc : accounts){
-        File << acc->serialize() << "\n";
+    std::ofstream file("accounts_export.json", std::ios::trunc);
+    
+    if(!file.is_open()){
+        std::cerr << "Failed to open JSON export file.\n";
+        return;
     }
 
+    json allAccounts = json::array();
+    for(const auto& acc : accounts){
+        allAccounts.push_back(acc->toJson());
+    }
+
+    file << allAccounts.dump(4);
     std::cout << accounts.size() << " account(s) exported successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }

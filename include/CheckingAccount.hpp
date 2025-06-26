@@ -9,7 +9,7 @@ public:
     void deposit(double amount) override;
     void withdraw(double amount) override;
     void display() const override;
-    std::string serialize() const override;
+    json toJson() const override;
     std::string getHolderName() const override;
     std::string getAccountType() const override;
 
