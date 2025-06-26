@@ -9,8 +9,7 @@ public:
     void deposit(double amount) override;
     void withdraw(double amount) override;
     void display() const override;
-    void saveToFile() const override;
-    void loadFromFile() override;
+    std::string serialize() const override;
     std::string getHolderName() const override;
     std::string getAccountType() const override;
 

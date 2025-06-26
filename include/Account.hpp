@@ -14,8 +14,7 @@ public:
     virtual void deposit(double amount) = 0;
     virtual void withdraw(double amount) = 0;
     virtual void display() const = 0;
-    virtual void saveToFile() const = 0;
-    virtual void loadFromFile() = 0;
+    virtual std::string serialize() const = 0;
     virtual std::string getHolderName() const = 0;
     virtual std::string getAccountType() const = 0;
 

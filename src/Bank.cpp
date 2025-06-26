@@ -99,8 +99,6 @@ void Bank::createAccount(){
 
     if(typeChoice == 1){
         double rate;
-        /* std::cout << "Enter Interest Rate (e.g., 0.02 for 2%): ";
-        std::cin >> rate; */
         rate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
         while(rate < 0 || rate > 0.055){
             std::cerr << "Error: Invalid interest rate.\n";
@@ -118,10 +116,9 @@ void Bank::createAccount(){
         }
         accounts.push_back(std::make_unique<CheckingAccount>(accNum, name, balance, overDraft));
     }
-
     std::cout << (typeChoice == 1 ? "Savings" : "Checking") << " account created successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    accounts.back()->saveToFile();
+    RedisCache::getInstance().saveAccount(*accounts.back());
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
@@ -140,6 +137,7 @@ void Bank::deposit(){
             amount = getValidatedInput<double>("Enter Deposit Amount: ");
         }
         acc->deposit(amount);
+        RedisCache::getInstance().saveAccount(*acc);
         std::cout << "New Balance: $" << acc->getBalance() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
@@ -160,6 +158,7 @@ void Bank::withdraw(){
             amount = getValidatedInput<double>("Enter Withdraw Amount: ");
         }
         acc->withdraw(amount);
+        RedisCache::getInstance().saveAccount(*acc);
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
@@ -196,14 +195,17 @@ void Bank::closeAccount(){
     
     if(it != accounts.end()){
         std::cout << "Closing account #" << accNum << "...\n";
-        accounts.erase(it); // Unique pointer is deleted here
+        accounts.erase(it); // unique pointer is deleted here
+        RedisCache::getInstance().deleteAccount(accNum); // delete account from Redis
         std::cout << "Account closed successfully.\n";
-        saveAllAccounts(); // update the persistent file
+        saveAllAccounts(); // update Redis
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }else{
         std::cerr << "Account #" << accNum << " not found.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
+
+    RedisCache::getInstance().deleteAccount(accNum);
 }
 
 void Bank::modifyAccount(){
@@ -292,88 +294,33 @@ void Bank::modifyAccount(){
             return;
         }
     }
-
-    acc->saveToFile();
-    std::cout << "Account updated successfully.\n";
+    RedisCache::getInstance().saveAccount(*acc);
+    std::cout << "Account #" << acc->getAccountNumber() << " updated successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 void Bank::saveAllAccounts(){
-    std::ofstream File("accounts_temp.dat");
-
-    if(!File.is_open()){
-        std::cerr << "Unable to open accounts_temp.dat\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
-    }
-
     for(const auto& acc : accounts){
-        std::string name = acc->getHolderName();
-        std::replace(name.begin(), name.end(), ' ', '_');
-
-        File << acc->getAccountType() << " " << acc->getAccountNumber()
-             << " " << name << " " << acc->getBalance() << " ";
-        
-        if(acc->getAccountType() == "SAVINGS"){
-            auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
-            if(savings){
-                File << savings->getInterestRate();
-            }
-        }else if(acc->getAccountType() == "CHECKING"){
-            auto* checking = dynamic_cast<CheckingAccount*>(acc.get());
-            if(checking){
-                File << checking->getOverDraftLimit();
-            }
-        }
-
-        File << "\n";
+        RedisCache::getInstance().saveAccount(*acc);
     }
 
-    File.close();
-    std::remove("accounts.dat");
-    std::rename("accounts_temp.dat", "accounts.dat");
-
-    std::cout << "All accounts saved succesfully.\n";
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout << accounts.size() << " account(s) saved to Redis successfully.\n";
 }
 
 void Bank::loadAllAccounts(){
-    std::ifstream File("accounts.dat");
-
-    if(!File.is_open()){
-        std::cerr << "Unable to open accounts.dat\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
-    }
-
     accounts.clear();
-    std::string line;
-    while(std::getline(File, line)){
-        std::stringstream ss(line);
-        std::string name, accountType;
-        int accNum;
-        double balance;
+    
+    std::vector<std::string> keys = RedisCache::getInstance().getAllAccountKeys();
 
-        ss >> accountType >> accNum >> name >> balance;
-        std::replace(name.begin(), name.end(), '_', ' ');
-
-        if(accountType == "SAVINGS"){
-            double rate;
-            ss >> rate;
-            accounts.push_back(std::make_unique<SavingsAccount>(accNum, name, balance, rate));
-        }else if(accountType == "CHECKING"){
-            int overDraft;
-            ss >> overDraft;
-            accounts.push_back(std::make_unique<CheckingAccount>(accNum, name, balance, overDraft));
-        }else{
-            std::cerr << "Unknown account type: " << accountType << "\n";
-            return;
+    for(const auto& key : keys){
+        int accNum = std::stoi(key.substr(key.find(":") + 1));
+        std::unique_ptr<Account> acc = RedisCache::getInstance().loadAccount(accNum);
+        if(acc){
+            accounts.push_back(std::move(acc));
         }
     }
 
-    File.close();
-    std::cout << "All files loaded succesffully.\n";
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout << accounts.size() << " account(s) loaded from Redis sucessfully.\n";
 }
 
 Account* Bank::findAccount(int accNum){
@@ -407,6 +354,7 @@ void Bank::applyInterestChoice(){
         auto* savings = dynamic_cast<SavingsAccount*>(acc);
         if(savings){
             savings->applyInterest();
+            RedisCache::getInstance().saveAccount(*acc);
         }else{
             std::cerr << "This is not a savings account.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -417,10 +365,21 @@ void Bank::applyInterestChoice(){
             auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
             if(savings){
                 savings->applyInterest();
+                RedisCache::getInstance().saveAccount(*acc);
             }
         }
     }else{
         std::cerr << "Invalid choice.\n";
     }
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
+void Bank::exportAllAccountsToFile(){
+    std::ofstream File("accounts_export.dat", std::ios::trunc);
+    for(const auto& acc : accounts){
+        File << acc->serialize() << "\n";
+    }
+
+    std::cout << accounts.size() << " account(s) exported successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }

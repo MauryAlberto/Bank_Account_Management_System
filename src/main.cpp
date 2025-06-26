@@ -1,4 +1,5 @@
 #include "Bank.hpp"
+#include "RedisCache.hpp"
 
 void displayMenu(){
     std::cout << "\n=== Bank Account Management System ===\n";
@@ -10,8 +11,8 @@ void displayMenu(){
     std::cout << "5. Display All Accounts\n";
     std::cout << "6. Modify Account\n";
     std::cout << "7. Close Account\n";
-    std::cout << "8. Save All Accounts\n";
-    std::cout << "9. Apply Interest\n";
+    std::cout << "8. Apply Interest\n";
+    std::cout << "9. Export All Accounts To File\n";
     std::cout << "Select an option: ";
 }
 
@@ -60,12 +61,11 @@ int main(){
                 break;
             }
             case 8:{
-                bank.saveAllAccounts();
-                std::cout << "Accounts saved successfully.\n";
+                bank.applyInterestChoice();
                 break;
             }
             case 9:{
-                bank.applyInterestChoice();
+                bank.exportAllAccountsToFile();
                 break;
             }
             default:{

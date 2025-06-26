@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RedisCache.hpp"
 #include "SavingsAccount.hpp"
 #include "CheckingAccount.hpp"
 #include <algorithm>
@@ -27,6 +28,7 @@ public:
 
     void saveAllAccounts();
     void loadAllAccounts();
+    void exportAllAccountsToFile();
 
     void applyInterestChoice();
 
@@ -34,7 +36,6 @@ public:
     Account* findAccount(int accNum);
 private:
     std::vector<std::unique_ptr<Account>> accounts;
-    std::string dataFile = "accounts.dat";
 
     Bank() = default; // private constructor
     Bank(const Bank&) = delete; // delete copy constructor

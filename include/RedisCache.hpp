@@ -2,6 +2,7 @@
 
 #include <sw/redis++/redis++.h>
 #include <memory>
+#include <unordered_map>
 #include "SavingsAccount.hpp"
 #include "CheckingAccount.hpp"
 
@@ -15,6 +16,7 @@ public:
     void saveAccount(const Account& acc);
     std::unique_ptr<Account> loadAccount(int accNum);
     void deleteAccount(int accNum);
+    std::vector<std::string> getAllAccountKeys();
 private:
     RedisCache();
     RedisCache(const RedisCache&) = delete;
