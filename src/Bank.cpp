@@ -1,45 +1,46 @@
 #include "Bank.hpp"
 
+template<typename T>
+std::string getTypeName();
+
+template<>
+std::string getTypeName<int>() { return "integer"; }
+
+template<>
+std::string getTypeName<double>() { return "double"; }
+
+template<>
+std::string getTypeName<std::string>() { return "string"; }
+
 template <typename T>
-T getValidatedInput(const std::string& prompt){
-    std::string input;
-    T value;
-
-    while(true){
-        std::cout << prompt;
-        std::getline(std::cin, input);
-
-        std::stringstream ss(input);
-        ss >> value;
-
-        if(!ss.fail() && ss.eof()){
-            break;
-        }else{
-            std::cerr << "Invalid input. Please enter a value of type " << typeid(T).name() << ".\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-        }
+bool validateJsonField(const json& obj, const std::string& key, T& out){
+    if(!obj.contains(key)){
+        std::cerr << "Missing field '" << key << "'.\n";
+        return false;
     }
 
-    return value;
-}
-
-template <>
-std::string getValidatedInput<std::string>(const std::string& prompt){
-    std::string input;
-
-    while(true){
-        std::cout << prompt;
-        std::getline(std::cin, input);
-
-        if(!input.empty()){
-            break;
-        }else{
-            std::cerr << "Invalid input. Please enter a non-empty string.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+    if constexpr(std::is_same_v<T, int>){
+        if(!obj[key].is_number_integer()){
+            std::cerr << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+            return false;
         }
+    }else if constexpr(std::is_same_v<T, double>){
+        if(!obj[key].is_number()){
+            std::cerr << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+            return false;
+        }
+    }else if constexpr(std::is_same_v<T, std::string>){
+        if(!obj[key].is_string()){
+            std::cerr << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+            return false;
+        }
+    }else{
+        std::cerr << "Unsupported type check for key '" << key << "'.\n";
+        return false;
     }
 
-    return input;
+    out = obj[key].get<T>();
+    return true;
 }
 
 bool containsNumber(const std::string& str) {
@@ -52,7 +53,7 @@ bool containsNumber(const std::string& str) {
 }
 
 bool Bank::accountExists(int accNum){
-    for(auto& acc : accounts){
+    for(const auto& acc : accounts){
         if(acc->getAccountNumber() == accNum){
             return true;
         }
@@ -60,102 +61,43 @@ bool Bank::accountExists(int accNum){
     return false;
 }
 
-void Bank::createAccount(){
-    int typeChoice, accNum;
-    std::string name;
-    double balance;
-    std::cout << "1. Savings Account\n2. Checking Account\nSelect type: ";
-    std::cin >> typeChoice;
-    std::cin.ignore();
-
-    if(typeChoice != 1 && typeChoice != 2){
-        std::cerr << "Invalid account type.\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
-    }
-
-    accNum = getValidatedInput<int>("Enter Account Number: ");
-
-    // call accountExists() here to check if account already exists
-    if(accountExists(accNum)){
-        std::cerr << "Account #" << accNum << " already exists.\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
-    }
-
-    name = getValidatedInput<std::string>("Enter Holder Name: ");
-    while(containsNumber(name) || name.size() > 50){
-        std::cerr << "Error: Invalid holder name.\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        name = getValidatedInput<std::string>("Enter Holder Name: ");
-    }
-
-    balance = getValidatedInput<double>("Enter Initial Balance: ");
-    while(balance <= 0.0){
-        std::cerr << "Error: Initial balance must be greater than 0.\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        balance = getValidatedInput<double>("Enter Initial Balance: ");
-    }
-
-    if(typeChoice == 1){
-        double rate;
-        rate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
-        while(rate < 0 || rate > 0.055){
-            std::cerr << "Error: Invalid interest rate.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            rate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
-        }
-        accounts.push_back(std::make_unique<SavingsAccount>(accNum, name, balance, rate));
-    }else if(typeChoice == 2){
-        int overDraft;
-        overDraft = getValidatedInput<int>("Enter Overdraft Limit ($5000 max limit): ");
-        while(overDraft < 0 || overDraft > 5000){
-            std::cerr << "Error: Invalid overdraft limit.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            overDraft = getValidatedInput<int>("Enter Overdraft Limit ($5000 max limit): ");
-        }
-        accounts.push_back(std::make_unique<CheckingAccount>(accNum, name, balance, overDraft));
-    }
-    std::cout << (typeChoice == 1 ? "Savings" : "Checking") << " account created successfully.\n";
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    RedisCache::getInstance().saveAccount(*accounts.back());
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-}
-
-void Bank::deposit(){
+void Bank::deposit(const json& accJson){
     int accNum;
     double amount;
 
-    accNum = getValidatedInput<int>("Enter Account Number: ");
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
 
     Account* acc = findAccount(accNum);
     if(acc != nullptr){
-        amount = getValidatedInput<double>("Enter Deposit Amount: ");
-        while(amount < 0.0){
+        if(amount < 0.0){
             std::cerr << "Error: Cannot deposit negative amount.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            amount = getValidatedInput<double>("Enter Deposit Amount: ");
+            return;
         }
         acc->deposit(amount);
         RedisCache::getInstance().saveAccount(*acc);
-        std::cout << "New Balance: $" << acc->getBalance() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
 
-void Bank::withdraw(){
+void Bank::withdraw(const json& accJson){
     int accNum;
     double amount;
 
-    accNum = getValidatedInput<int>("Enter Account Number: ");
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
 
     Account* acc = findAccount(accNum);
     if(acc != nullptr){
-        amount = getValidatedInput<double>("Enter Withdraw Amount: ");
-        while(amount < 0.0){
+        if(amount < 0.0){
             std::cerr << "Error: Cannot withdraw negative amount.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            amount = getValidatedInput<double>("Enter Withdraw Amount: ");
+            return;
         }
         acc->withdraw(amount);
         RedisCache::getInstance().saveAccount(*acc);
@@ -163,10 +105,12 @@ void Bank::withdraw(){
     }
 }
 
-void Bank::displayAccount(){
+void Bank::displayAccount(const json& accJson){
     int accNum;
-
-    accNum = getValidatedInput<int>("Enter Account Number: ");
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
 
     Account* acc = findAccount(accNum);
     if(acc != nullptr){
@@ -184,9 +128,14 @@ void Bank::displayAllAccounts(){
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-void Bank::closeAccount(){
-    int accNum;
-    accNum = getValidatedInput<int>("Enter account number to close: ");
+void Bank::closeAccount(const json& accJson){
+    if(!accJson.contains("accountNumber") || !accJson["accountNumber"].is_number_integer()){
+        std::cerr << "Invalid or missing 'accountNumber'. Expected integer.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
+
+    int accNum = accJson["accountNumber"];
 
     auto it = std::find_if(accounts.begin(), accounts.end(), 
                 [accNum](const std::unique_ptr<Account>& acc){
@@ -204,96 +153,65 @@ void Bank::closeAccount(){
         std::cerr << "Account #" << accNum << " not found.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
-
-    RedisCache::getInstance().deleteAccount(accNum);
 }
 
-void Bank::modifyAccount(){
-    int accNum;
-    accNum = getValidatedInput<int>("Enter account number to modify: ");
-
-    Account* acc = findAccount(accNum);
-    if(acc == nullptr){
-        std::cerr << "Account not found.\n";
+void Bank::modifyAccount(const json& accJson){
+    if(!accJson.contains("accountNumber") || !accJson["accountNumber"].is_number_integer()){
+        std::cerr << "Invalid or missing 'accountNumber'. Expected integer.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
         return;
     }
 
-    std::cout << "Account found:\n";
+    int accNum = accJson["accountNumber"];
+    Account* acc = findAccount(accNum);
+    
+    if(acc == nullptr){
+        std::cerr << "Account #" << accNum << " not found.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
+
+    std::cout << "Account #" << accNum << " found.\n";
     acc->display();
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    std::cout << "\nChoose what to modify:\n";
-    std::cout << "1. Holder Name\n";
-    std::cout << "2. Balance\n";
-    std::cout << "3. Interest Rate (Savings Only)\n";
-    std::cout << "4. Overdraft Limit (Checking Only)\n";
-    std::cout << "Enter choice: ";
-    int choice;
-    std::cin >> choice;
-    std::cin.ignore();
-
-    switch(choice){
-        case 1:{
-            std::string newName;
-            newName = getValidatedInput<std::string>("Enter New Holder Name: ");
-            acc->setHolderName(newName);
-            break;
-        }
-        case 2:{
-            double newBalance;
-            newBalance= getValidatedInput<double>("Enter New Balance:");
-            while(newBalance <= 0.0){
-                std::cerr << "Error: New balance must be greater than 0.\n";
-                std::this_thread::sleep_for(std::chrono::seconds(2));
-                newBalance = getValidatedInput<double>("Enter New Balance: ");
-            }
-            acc->setBalance(newBalance);
-            break;
-        }
-        case 3:{
-            auto* savings = dynamic_cast<SavingsAccount*>(acc);
-            if(savings){
-                double newRate;
-                newRate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
-                while(newRate < 0){
-                    std::cerr << "Error: Invalid interest rate.\n";
-                    std::this_thread::sleep_for(std::chrono::seconds(2));
-                    newRate = getValidatedInput<double>("Enter Interest Rate (e.g., 0.02 for 2% | max interest rate is 0.055): ");
-                }
-                savings->setInterestRate(newRate);
-                break;
-            }else{
-                std::cerr << "This is not a savings account.\n";
-                std::this_thread::sleep_for(std::chrono::seconds(2));
-                return;
-            }
-            
-        }
-        case 4:{
-            auto* checking = dynamic_cast<CheckingAccount*>(acc);
-            if(checking){
-                int newLimit;
-                newLimit= getValidatedInput<int>("Enter new overdraft limit ($5000 max limit): ");
-                while(newLimit < 0 || newLimit > 5000){
-                    std::cerr << "Error: Invalid overdraft limit.\n";
-                    std::this_thread::sleep_for(std::chrono::seconds(2));
-                    newLimit = getValidatedInput<int>("Enter new overdraft limit ($5000 max limit): ");
-                }
-                checking->setOverDraftLimit(newLimit);
-                break;
-            }else{
-                std::cerr << "This is not a checking account.\n";
-                std::this_thread::sleep_for(std::chrono::seconds(2));
-                return;
-            }
-        }
-        default:{
-            std::cerr << "Invalid choice.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
-        }
+    if(accJson.contains("holderName") && accJson.is_string()){
+        acc->setHolderName(accJson["holderName"]);
+    }else if(accJson.contains("holderName")){
+        std::cerr << "Invalid type for 'holderName'. Expected string.\n";
+        return;
     }
+
+    if(accJson.contains("balance") && accJson["balance"].is_number()){
+        acc->setBalance(accJson["balance"]);
+    }else if(accJson.contains("balance")){
+        std::cerr << "Invalid type for 'balance'. Expected number.\n";
+        return;
+    }
+
+    if(auto* savings = dynamic_cast<SavingsAccount*>(acc)){
+        if(accJson.contains("interestRate")){
+            if(accJson["interestRate"].is_number()){
+                savings->setInterestRate(accJson["interestRate"]);
+            }else{
+                std::cerr << "Invalid type for 'interestRate'. Expected number.\n";
+                return;
+            }
+        }
+    }else if(auto* checking = dynamic_cast<CheckingAccount*>(acc)){
+        if(accJson.contains("overdraftLimit")){
+            if(accJson["overdraftLimit"].is_number_integer()){
+                checking->setOverDraftLimit(accJson["overdraftLimit"]);
+            }else{
+                std::cerr << "Invalid type for 'overdraftLimit'. Expected integer.\n";
+                return;
+            }
+        }
+    }else{
+        std::cerr << "Error: Unknown account type.\n";
+        return;
+    }
+
     RedisCache::getInstance().saveAccount(*acc);
     std::cout << "Account #" << acc->getAccountNumber() << " updated successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -335,18 +253,25 @@ Account* Bank::findAccount(int accNum){
     return nullptr;
 }
 
-void Bank::applyInterestChoice(){
-    std::string input;
-    std::cout << "Apply interest to ONE account or ALL accounts? (Enter ONE or ALL): ";
-    std::getline(std::cin, input);
+void Bank::applyInterestChoice(const json& accJson){
+    std::string target;
+    if(!validateJsonField(accJson, "target", target)){
+        std::cerr << "Invalid or missing 'target'. Expected string.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
 
-    if(input == "ONE"){
+    if(target == "ONE"){
         int accNum;
-        std::cout << "Enter Account Number: ";
-        std::cin >> accNum;
+        if(!validateJsonField(accJson, "accountNumber", accNum)){
+            std::cerr << "Invalid or missing 'accountNumber' for ONE target.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return;
+        }
+
         Account* acc = findAccount(accNum);
         if(acc == nullptr){
-            std::cerr << "Account not found.\n";
+            std::cerr << "Account #" << accNum << " not found.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
             return;
         }
@@ -357,20 +282,23 @@ void Bank::applyInterestChoice(){
             RedisCache::getInstance().saveAccount(*acc);
         }else{
             std::cerr << "This is not a savings account.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
         }
-    }else if(input == "ALL"){
+    }else if(target == "ALL"){
+        int count = 0;
         for(const auto& acc : accounts){
             auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
             if(savings){
                 savings->applyInterest();
                 RedisCache::getInstance().saveAccount(*acc);
+                ++count;
             }
         }
+
+        std::cout << "Interest applied to " << count << " savings account(s).\n";
     }else{
-        std::cerr << "Invalid choice.\n";
+        std::cerr << "Invalid target: Must be 'ONE' or 'ALL'.\n";
     }
+
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
@@ -379,6 +307,7 @@ void Bank::exportAllAccountsToFile(){
     
     if(!file.is_open()){
         std::cerr << "Failed to open JSON export file.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         return;
     }
 
@@ -389,5 +318,53 @@ void Bank::exportAllAccountsToFile(){
 
     file << allAccounts.dump(4);
     std::cout << accounts.size() << " account(s) exported successfully.\n";
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
+void Bank::createAccountFromJson(const json& acc){
+    std::string name, accountType;
+    int accNum;
+    double balance;
+
+    if(!validateJsonField(acc, "accountNumber", accNum) ||
+       !validateJsonField(acc, "balance", balance) ||
+       !validateJsonField(acc, "holderName", name) ||
+       !validateJsonField(acc, "accountType", accountType)){
+       std::this_thread::sleep_for(std::chrono::seconds(2));
+       return;
+    }
+
+    if(accountExists(accNum)){
+        std::cerr << "Account #" << accNum << " already exists.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
+
+    std::unique_ptr<Account> newAcc;
+
+    if(accountType == "SAVINGS"){
+        double rate;
+        if(!validateJsonField(acc, "interestRate", rate)){
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return;
+        }
+        newAcc = std::make_unique<SavingsAccount>(accNum, name, balance, rate);
+    }else if(accountType == "CHECKING"){
+        int overdraft;
+        if(!validateJsonField(acc, "overdraftLimit", overdraft)){
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return;
+        }
+        newAcc = std::make_unique<CheckingAccount>(accNum, name, balance, overdraft);
+    }else{
+        std::cerr << "Unkown account type. Account creation failed.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return;
+    }
+
+    accounts.push_back(std::move(newAcc));
+    RedisCache::getInstance().saveAccount(*accounts.back());
+
+    std::cout << "Account #" << accNum << " created successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }

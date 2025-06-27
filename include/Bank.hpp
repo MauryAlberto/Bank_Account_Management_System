@@ -18,19 +18,19 @@ public:
         return instance;
     }
 
-    void createAccount();
-    void deposit();
-    void withdraw();
-    void displayAccount();
+    void createAccountFromJson(const json& accJson);
+    void deposit(const json& accJson);
+    void withdraw(const json& accJson);
+    void displayAccount(const json& accJson);
     void displayAllAccounts();
-    void closeAccount();
-    void modifyAccount();
+    void closeAccount(const json& accJson);
+    void modifyAccount(const json& accJson);
 
     void saveAllAccounts();
     void loadAllAccounts();
     void exportAllAccountsToFile();
 
-    void applyInterestChoice();
+    void applyInterestChoice(const json& accJson);
 
     bool accountExists(int accNum);
     Account* findAccount(int accNum);

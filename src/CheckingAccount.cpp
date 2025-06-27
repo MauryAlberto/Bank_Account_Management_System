@@ -2,6 +2,7 @@
 
 void CheckingAccount::deposit(double amount) {
     balance += amount;
+    std::cout << "New Balance: $" << balance << std::endl;
 }
 
 void CheckingAccount::withdraw(double amount) {
@@ -36,7 +37,7 @@ int CheckingAccount::getOverDraftLimit() const {
 
 json CheckingAccount::toJson() const {
     return {
-        {"type", "CHECKING"},
+        {"accountType", "CHECKING"},
         {"accountNumber", accountNumber},
         {"holderName", holderName},
         {"balance", balance},

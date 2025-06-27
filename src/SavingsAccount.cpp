@@ -2,6 +2,7 @@
 
 void SavingsAccount::deposit(double amount) {
     balance += amount;
+    std::cout << "New Balance: $" << balance << std::endl;
 }
 
 void SavingsAccount::withdraw(double amount) {
@@ -44,7 +45,7 @@ double SavingsAccount::getInterestRate() const {
 
 json SavingsAccount::toJson() const {
     return {
-        {"type", "SAVINGS"},
+        {"accountType", "SAVINGS"},
         {"accountNumber", accountNumber},
         {"holderName", holderName},
         {"balance", balance},

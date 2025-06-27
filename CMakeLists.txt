@@ -1,36 +1,22 @@
 cmake_minimum_required(VERSION 3.10)
-project(BankSystem)
+project(BankingSystem)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find redis++ and hiredis
+# Find required packages
 find_package(PkgConfig REQUIRED)
+
+# Find hiredis
 pkg_check_modules(HIREDIS REQUIRED hiredis)
-pkg_check_modules(REDISPP REQUIRED redis++)
 
-# Include directories
-include_directories(
-    include
-    ${HIREDIS_INCLUDE_DIRS}
-    ${REDISPP_INCLUDE_DIRS}
-)
+# Find redis++
+find_library(REDIS_PLUS_PLUS_LIB redis++)
+if(NOT REDIS_PLUS_PLUS_LIB)
+    message(FATAL_ERROR "redis++ library not found")
+endif()
 
-# Source files
-set(SOURCES
-    src/Account.cpp
-    src/Bank.cpp
-    src/CheckingAccount.cpp
-    src/RedisCache.cpp
-    src/SavingsAccount.cpp
-    src/main.cpp
-)
-
-# Define the executable
-add_executable(bank_system ${SOURCES})
-
-# Link libraries
-target_link_libraries(bank_system
-    ${HIREDIS_LIBRARIES}
-    ${REDISPP_LIBRARIES}
-)
+# Add subdirectories
+add_subdirectory(src)
+add_subdirectory(server)
+add_subdirectory(client)
