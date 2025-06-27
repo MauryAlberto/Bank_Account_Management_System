@@ -1,10 +1,14 @@
 # Bank Account Management System (Modern C++)
 
-A robust and extensible console-based **Bank Account Management System** written in **Modern C++17**, showcasing real-world software design using **Object-Oriented Programming**, **smart pointers**, **file I/O with persistence**, and **dynamic polymorphism**.
+A robust and extensible **Bank Account Management System** written in **Modern C++17**, showcasing real-world software design using **Object-Oriented Programming**, **Singleton Design Pattern**, **Smart Pointers**, **Redis Persistence**, **Server-Client Architecture**, and **Dynamic Polymorphism**.
 
 ## Project Overview
 
-This project allows users to create, manage, and persist bank accounts (Savings and Checking). The system supports operations such as deposits, withdrawals, modifying account details, applying interest, and saving/loading accounts from disk.
+This project provides a bank account management system with:
+- Server-side account management with Redis persistence
+- Client applications for account operations
+- Support for Savings and Checking accounts
+- Network communication between components
 
 ---
 
@@ -13,20 +17,29 @@ This project allows users to create, manage, and persist bank accounts (Savings 
 ### Account Operations
 - Create `Savings` or `Checking` accounts
 - Deposit and withdraw funds
-- Modify account details (name, interest rate, overdraft limit)
+- Modify account details (name, balance, interest rate, overdraft limit)
 - View a specific account or list all accounts
 - Close (delete) accounts
 - Apply interest to savings accounts
 - Enforce overdraft limits on checking accounts
 
 ### Data Persistence
-- All account data is stored in a file `accounts.dat`
-- On startup, the file is parsed to rebuild accounts in memory
-- Data is saved with proper serialization/deserialization logic
+- All account data is stored in Redis
+- Automatic synchronization between server and database
+- Efficient data serialization/deserialization
 
-### Clean Console Interface
-- User-friendly menu-driven interface
-- Input validation and informative error messages
+### Modern C++ Features
+- Function templates for type-safe JSON validation
+- Smart pointers for automatic memory management
+- constexpr for compile-time checks
+- std::thread for handling multiple clients
+- std::chrono for adding delays
+
+### Server-Client Architecture
+- Dedicated server process managing all accounts
+- Multiple client applications can connect
+- Network communication via TCP/IP
+- Thread-safe operations
 
 ---
 
@@ -35,23 +48,27 @@ This project allows users to create, manage, and persist bank accounts (Savings 
 ```
 Bank_Account_Management_System/
 │
-├── include/                # Header files for all classes
-│   ├── Account.hpp
-│   ├── Bank.hpp
-│   ├── CheckingAccount.hpp
-│   └── SavingsAccount.hpp
+├── client/ # Client application code
+│ ├── main.cpp # Client entry point
+│ └── CMakeLists.txt
 │
-├── src/                    # Source files
-│   ├── Account.cpp
-│   ├── Bank.cpp
-│   ├── CheckingAccount.cpp
-│   ├── main.cpp
-│   └── SavingsAccount.cpp
+├── server/ # Server application code
+│ ├── BankServer.cpp # Server implementation
+│ └── CMakeLists.txt
+│
+├── src/ # Core logic
+│ ├── Account.cpp
+│ ├── Bank.cpp # Main banking logic
+│ ├── CheckingAccount.cpp
+│ ├── CMakeLists.txt
+│ ├── Network.cpp # Network communication
+│ ├── RedisCache.cpp # Redis integration
+│ └── SavingsAccount.cpp
+│
+├── include/ # Header files
 │
 ├── .gitignore
-├── accounts.dat            # Persistent account data
-├── Makefile                # Build system
-└── README.md               # Project documentation
+└── README.md # Project documentation
 ```
 
 ---
@@ -64,88 +81,144 @@ Bank_Account_Management_System/
 - Encapsulation of account logic inside respective classes
 - Use of **virtual destructors** for proper cleanup
 
-### Smart Pointers
-- Uses `std::unique_ptr<Account>` to manage dynamic memory safely
-- Ensures **RAII** (Resource Acquisition Is Initialization) — no manual `delete` needed
-- Prevents memory leaks and ownership ambiguity
-
-### File I/O & Persistence
-- Uses `std::ifstream` and `std::ofstream` to read/write to `accounts.dat`
-- Implements **manual serialization/deserialization**
-- Reconstructs full program state on launch
+### Singleton Design Pattern Implmentation
+- Single instance existence
+- Global access point
+- Thread-safe initialization (via static local variable)
+- Controlled instantiation
 
 ### Dynamic Polymorphism
 - Base class pointers allow storing `SavingsAccount` and `CheckingAccount` in the same container
 - Uses `dynamic_cast` for safely downcasting during type-specific operations
 
-### STL Containers
+### STL Container
 - `std::vector<std::unique_ptr<Account>>` stores all account objects
 - Efficient insertion, removal, and iteration over accounts
 
-### File Parsing
-- Uses `std::stringstream` to parse account data
-- Converts strings into appropriate types
-- Handles safe formatting (e.g., replacing underscores in names)
+### Smart Pointers
+- Uses `std::unique_ptr<Account>` to manage dynamic memory safely
+- Ensures **RAII** (Resource Acquisition Is Initialization) — no manual `delete` needed
+- Prevents memory leaks and ownership ambiguity
 
-### Time Complexity Optimized Saving
-- All accounts are saved in **O(n)** time using a temporary file + `rename()`
-- Avoids inefficient repeated file rewrites
+### Redis Integration
+- All data persisted in Redis database
+- Automatic synchronization
+- Efficient serializartion/deserialization
 
-### Input Validation
-- Checks for valid account types, positive balances, valid account numbers
-- Ensures robust user interaction
+### Server-Client Architecture
+- TCP/IP network communication
+- Thread-safe operations
+- JSON-based protocol
+- Separation of concerns
 
----
-
-## Sample Data Format (`accounts.dat`)
-
-```txt
-SAVINGS 1001 John_Doe 5000.00 0.02
-CHECKING 1002 Alice_Smith 2000.00 1000
-```
-
-> Spaces in names are replaced with underscores for safe parsing.
+### JSON Handling
+- Type-safe validation with templates
+- Error handling for malformed input
+- Efficient parsing and serialization
 
 ---
 
-## Running the Program
+## Sample Code Highlights
 
-### Requirements
-- C++17 or higher
-- Make
-
-### Build & Run
-
-```bash
-make        # Build the project
-make run    # Execute the program
-```
-
----
-
-## Sample Code Snippets
-
-### Virtual Function in Base Class
+### Function Template for JSON Validation
 
 ```cpp
-virtual void saveToFile() const = 0;
+template <typename T>
+bool validateJsonField(const json& obj, const std::string& key, T& out){
+    if(!obj.contains(key)){
+        std::cerr << "Missing field '" << key << "'.\n";
+        return false;
+    }
+
+    if constexpr(std::is_same_v<T, int>){
+        if(!obj[key].is_number_integer()){
+            std::cerr << "Invalid type for key: " << key << ". Expected integer.\n";
+            return false;
+        }
+    }
+    //... other type checks
+    out = obj[key].get<T>();
+    return true;
+}
 ```
 
 ### Smart Pointer Usage
 
 ```cpp
 std::vector<std::unique_ptr<Account>> accounts;
-accounts.push_back(std::make_unique<SavingsAccount>(...));
+std::unique_ptr<Account> newAcc;
+newAcc = std::make_unique<SavingsAccount>(accNum, name, balance, rate);
+accounts.push_back(std::move(newAcc));
 ```
 
-### File Parsing Example
+### Redis Integration
 
 ```cpp
-std::stringstream ss(line);
-std::string type, name;
-int accNum;
-double balance;
-ss >> type >> accNum >> name >> balance;
+RedisCache::getInstance().saveAccount(*acc);
+auto account = Redis::Cache::getInstance().loadAccount(accNum);
+```
+
+### Bank Singleton Implementation
+```cpp
+class Bank {
+public:
+    static Bank& getInstance() {
+        static Bank instance;  // Thread-safe initialization
+        return instance;
+    }
+private:
+    Bank() = default;                   // Private constructor
+    Bank(const Bank&) = delete;         // Delete copy constructor
+    Bank& operator=(const Bank&) = delete; // Delete assignment operator
+};
+```
+
+### RedisCache Singleton Implementation
+```cpp
+class RedisCache {
+public:
+    static RedisCache& getInstance() {
+        static RedisCache instance;  // Thread-safe initialization
+        return instance;
+    }
+private:
+    RedisCache();                   // Private constructor
+    RedisCache(const RedisCache&) = delete; // Delete copy constructor
+    RedisCache& operator=(const RedisCache&) = delete; // Delete assignment operator
+};
+```
+
+---
+
+## Running the Program
+
+### Requirements
+- C++17 or higher compiler
+- CMake 
+- Redis server
+- redis-plus-plus
+- nlohmann/json
+
+### Build & Run
+
+```bash
+# Clone the repository
+git clone https://github.com/MauryAlberto/Bank_Account_Management_System.git
+cd Bank_Account_Management_System
+
+# Build
+mkdir build && cd build
+cmake ..
+make
+
+# Start Redis
+redis-server
+
+# Run server (in separate terminal within build)
+./server/bank_server
+
+# Run client (in another terminal within build)
+./client/bank_client
 ```
 
 ---
@@ -155,11 +228,10 @@ ss >> type >> accNum >> name >> balance;
 By studying or extending this project, you'll gain experience with:
 
 - Real-world class design
-- Data persistence with manual serialization
+- Data persistence with Redis
 - Modern C++ memory management (smart pointers)
 - Clean separation of concerns
 - Applying OOP principles in a practical application
-- Handling file parsing, validation, and edge cases
 
 ---
 
@@ -167,10 +239,8 @@ By studying or extending this project, you'll gain experience with:
 
 - Add login/authentication system per account
 - Add transaction history logging
-- Use JSON or SQLite for structured data storage
 - Implement a GUI using Qt or ImGui
 - Add unit tests using GoogleTest
-- Integrate Redis for fast read/write operations
-- Implement multithreading and socket programming of multi-user access to the Bank
+- Add SSL/TSL encryption
 
 ---
