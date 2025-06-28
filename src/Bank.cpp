@@ -61,63 +61,78 @@ bool Bank::accountExists(int accNum){
     return false;
 }
 
-void Bank::deposit(const json& accJson){
+bool Bank::deposit(const json& accJson){
     int accNum;
     double amount;
 
     if(!validateJsonField(accJson, "accountNumber", accNum)){
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
     Account* acc = findAccount(accNum);
-    if(acc != nullptr){
-        if(amount < 0.0){
-            std::cerr << "Error: Cannot deposit negative amount.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
-        }
-        acc->deposit(amount);
-        RedisCache::getInstance().saveAccount(*acc);
+    if(acc == nullptr){
+        std::cerr << "Account #" << accNum << " not found.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
     }
-}
 
-void Bank::withdraw(const json& accJson){
-    int accNum;
-    double amount;
-
-    if(!validateJsonField(accJson, "accountNumber", accNum)){
+    if(amount < 0.0){
+        std::cerr << "Error: Cannot deposit negative amount.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
-    Account* acc = findAccount(accNum);
-    if(acc != nullptr){
-        if(amount < 0.0){
-            std::cerr << "Error: Cannot withdraw negative amount.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
-        }
-        acc->withdraw(amount);
-        RedisCache::getInstance().saveAccount(*acc);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-}
-
-void Bank::displayAccount(const json& accJson){
-    int accNum;
-    if(!validateJsonField(accJson, "accountNumber", accNum)){
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
-    }
-
-    Account* acc = findAccount(accNum);
-    if(acc != nullptr){
-        acc->display();
-    }
-
+    acc->deposit(amount);
+     RedisCache::getInstance().saveAccount(*acc);
     std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
+}
+
+bool Bank::withdraw(const json& accJson){
+    int accNum;
+    double amount;
+
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
+    }
+
+    Account* acc = findAccount(accNum);
+    if(acc == nullptr){
+        std::cerr << "Account #" << accNum << " not found.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
+    }
+    if(amount < 0.0){
+        std::cerr << "Error: Cannot withdraw negative amount.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
+    }
+
+    acc->withdraw(amount);
+    RedisCache::getInstance().saveAccount(*acc);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
+}
+
+bool Bank::displayAccount(const json& accJson){
+    int accNum;
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
+    }
+
+    Account* acc = findAccount(accNum);
+    if(acc == nullptr){
+        std::cerr << "Account #" << accNum << " not found.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
+    }
+    
+    acc->display();
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
 }
 
 void Bank::displayAllAccounts(){
@@ -128,14 +143,12 @@ void Bank::displayAllAccounts(){
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-void Bank::closeAccount(const json& accJson){
-    if(!accJson.contains("accountNumber") || !accJson["accountNumber"].is_number_integer()){
-        std::cerr << "Invalid or missing 'accountNumber'. Expected integer.\n";
+bool Bank::closeAccount(const json& accJson){
+    int accNum;
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
-
-    int accNum = accJson["accountNumber"];
 
     auto it = std::find_if(accounts.begin(), accounts.end(), 
                 [accNum](const std::unique_ptr<Account>& acc){
@@ -149,72 +162,76 @@ void Bank::closeAccount(const json& accJson){
         std::cout << "Account closed successfully.\n";
         saveAllAccounts(); // update Redis
         std::this_thread::sleep_for(std::chrono::seconds(2));
+        return true;
     }else{
         std::cerr << "Account #" << accNum << " not found.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
     }
 }
 
-void Bank::modifyAccount(const json& accJson){
-    if(!accJson.contains("accountNumber") || !accJson["accountNumber"].is_number_integer()){
-        std::cerr << "Invalid or missing 'accountNumber'. Expected integer.\n";
+bool Bank::modifyAccount(const json& accJson){
+    int accNum;
+    if(!validateJsonField(accJson, "accountNumber", accNum)){
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
-    int accNum = accJson["accountNumber"];
     Account* acc = findAccount(accNum);
-    
     if(acc == nullptr){
         std::cerr << "Account #" << accNum << " not found.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
     std::cout << "Account #" << accNum << " found.\n";
     acc->display();
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    if(accJson.contains("holderName") && accJson.is_string()){
-        acc->setHolderName(accJson["holderName"]);
-    }else if(accJson.contains("holderName")){
-        std::cerr << "Invalid type for 'holderName'. Expected string.\n";
-        return;
+    std::string newName;
+    if(validateJsonField(accJson, "holderName", newName)){
+        acc->setHolderName(newName);
+    }else{
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
     }
 
-    if(accJson.contains("balance") && accJson["balance"].is_number()){
-        acc->setBalance(accJson["balance"]);
-    }else if(accJson.contains("balance")){
-        std::cerr << "Invalid type for 'balance'. Expected number.\n";
-        return;
+    double newBalance;
+    if(validateJsonField(accJson, "balance", newBalance)){
+        acc->setBalance(newBalance);
+    }else{
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
     }
 
-    if(auto* savings = dynamic_cast<SavingsAccount*>(acc)){
-        if(accJson.contains("interestRate")){
-            if(accJson["interestRate"].is_number()){
-                savings->setInterestRate(accJson["interestRate"]);
-            }else{
-                std::cerr << "Invalid type for 'interestRate'. Expected number.\n";
-                return;
-            }
+    if(acc->getAccountType() == "SAVINGS"){
+        double interestRate;
+        auto* savings = dynamic_cast<SavingsAccount*>(acc);
+        if(validateJsonField(accJson, "interestRate", interestRate)){
+            savings->setInterestRate(interestRate);
+        }else{
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return false;
         }
-    }else if(auto* checking = dynamic_cast<CheckingAccount*>(acc)){
-        if(accJson.contains("overdraftLimit")){
-            if(accJson["overdraftLimit"].is_number_integer()){
-                checking->setOverDraftLimit(accJson["overdraftLimit"]);
-            }else{
-                std::cerr << "Invalid type for 'overdraftLimit'. Expected integer.\n";
-                return;
-            }
+    }else if(acc->getAccountType() == "CHECKING"){
+        int newOverdraftLimit;
+        auto* checking = dynamic_cast<CheckingAccount*>(acc);
+        if(validateJsonField(accJson, "overdraftLimit", newOverdraftLimit)){
+            checking->setOverDraftLimit(newOverdraftLimit);
+        }else{
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            return false;
         }
     }else{
         std::cerr << "Error: Unknown account type.\n";
-        return;
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
     }
 
     RedisCache::getInstance().saveAccount(*acc);
     std::cout << "Account #" << acc->getAccountNumber() << " updated successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
 }
 
 void Bank::saveAllAccounts(){
@@ -242,7 +259,7 @@ void Bank::loadAllAccounts(){
 }
 
 Account* Bank::findAccount(int accNum){
-    for(auto& acc : accounts){
+    for(const auto& acc : accounts){
         if(acc->getAccountNumber() == accNum){
             return acc.get();
         }
@@ -253,41 +270,40 @@ Account* Bank::findAccount(int accNum){
     return nullptr;
 }
 
-void Bank::applyInterestChoice(const json& accJson){
+bool Bank::applyInterestChoice(const json& accJson){
     std::string target;
     if(!validateJsonField(accJson, "target", target)){
-        std::cerr << "Invalid or missing 'target'. Expected string.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
     if(target == "ONE"){
         int accNum;
         if(!validateJsonField(accJson, "accountNumber", accNum)){
-            std::cerr << "Invalid or missing 'accountNumber' for ONE target.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
+            return false;
         }
 
         Account* acc = findAccount(accNum);
         if(acc == nullptr){
             std::cerr << "Account #" << accNum << " not found.\n";
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
+            return false;
         }
 
-        auto* savings = dynamic_cast<SavingsAccount*>(acc);
-        if(savings){
+        if(acc->getAccountType() == "SAVINGS"){
+            auto* savings = dynamic_cast<SavingsAccount*>(acc);
             savings->applyInterest();
             RedisCache::getInstance().saveAccount(*acc);
         }else{
             std::cerr << "This is not a savings account.\n";
+            return false;
         }
     }else if(target == "ALL"){
         int count = 0;
         for(const auto& acc : accounts){
-            auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
-            if(savings){
+            if(acc->getAccountType() == "SAVINGS"){
+                auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
                 savings->applyInterest();
                 RedisCache::getInstance().saveAccount(*acc);
                 ++count;
@@ -297,9 +313,12 @@ void Bank::applyInterestChoice(const json& accJson){
         std::cout << "Interest applied to " << count << " savings account(s).\n";
     }else{
         std::cerr << "Invalid target: Must be 'ONE' or 'ALL'.\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        return false;
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
 }
 
 void Bank::exportAllAccountsToFile(){
@@ -321,7 +340,7 @@ void Bank::exportAllAccountsToFile(){
     std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
-void Bank::createAccountFromJson(const json& acc){
+bool Bank::createAccountFromJson(const json& acc){
     std::string name, accountType;
     int accNum;
     double balance;
@@ -331,13 +350,13 @@ void Bank::createAccountFromJson(const json& acc){
        !validateJsonField(acc, "holderName", name) ||
        !validateJsonField(acc, "accountType", accountType)){
        std::this_thread::sleep_for(std::chrono::seconds(2));
-       return;
+       return false;
     }
 
     if(accountExists(accNum)){
         std::cerr << "Account #" << accNum << " already exists.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
     std::unique_ptr<Account> newAcc;
@@ -346,20 +365,20 @@ void Bank::createAccountFromJson(const json& acc){
         double rate;
         if(!validateJsonField(acc, "interestRate", rate)){
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
+            return false;
         }
         newAcc = std::make_unique<SavingsAccount>(accNum, name, balance, rate);
     }else if(accountType == "CHECKING"){
         int overdraft;
         if(!validateJsonField(acc, "overdraftLimit", overdraft)){
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            return;
+            return false;
         }
         newAcc = std::make_unique<CheckingAccount>(accNum, name, balance, overdraft);
     }else{
         std::cerr << "Unkown account type. Account creation failed.\n";
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        return;
+        return false;
     }
 
     accounts.push_back(std::move(newAcc));
@@ -367,4 +386,5 @@ void Bank::createAccountFromJson(const json& acc){
 
     std::cout << "Account #" << accNum << " created successfully.\n";
     std::this_thread::sleep_for(std::chrono::seconds(2));
+    return true;
 }

@@ -10,6 +10,7 @@
 #include <thread>
 #include <limits>
 #include <typeinfo>
+#include <mutex>
 
 class Bank{
 public:
@@ -18,19 +19,19 @@ public:
         return instance;
     }
 
-    void createAccountFromJson(const json& accJson);
-    void deposit(const json& accJson);
-    void withdraw(const json& accJson);
-    void displayAccount(const json& accJson);
+    bool createAccountFromJson(const json& accJson);
+    bool deposit(const json& accJson);
+    bool withdraw(const json& accJson);
+    bool displayAccount(const json& accJson);
     void displayAllAccounts();
-    void closeAccount(const json& accJson);
-    void modifyAccount(const json& accJson);
+    bool closeAccount(const json& accJson);
+    bool modifyAccount(const json& accJson);
 
     void saveAllAccounts();
     void loadAllAccounts();
     void exportAllAccountsToFile();
 
-    void applyInterestChoice(const json& accJson);
+    bool applyInterestChoice(const json& accJson);
 
     bool accountExists(int accNum);
     Account* findAccount(int accNum);
