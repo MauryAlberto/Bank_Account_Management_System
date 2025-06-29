@@ -27,7 +27,7 @@ public:
     void setHolderName(const std::string& name);
     void setBalance(double newBalance);
 protected:
-    mutable std::mutex mtx;
+    std::mutex mtx;
     int accountNumber;
     std::string holderName;
     double balance;
