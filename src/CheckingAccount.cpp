@@ -1,17 +1,18 @@
 #include "CheckingAccount.hpp"
 
 void CheckingAccount::deposit(double amount) {
+    std::lock_guard<std::mutex> lock(mtx);
     balance += amount;
     std::cout << "New Balance: $" << balance << std::endl;
 }
 
 void CheckingAccount::withdraw(double amount) {
+    std::lock_guard<std::mutex> lock(mtx);
     if(balance + overdraftLimit - amount >= 0){
         balance -= amount;
         std::cout << "New Balance: $" << balance << std::endl;
     }else{
         std::cerr << "Overdraft limit exceeded.\n";
-        return;
     }
 }
 
@@ -20,6 +21,7 @@ void CheckingAccount::display() const {
 }
 
 void CheckingAccount::setOverDraftLimit(int newLimit) {
+    std::lock_guard<std::mutex> lock(mtx);
     overdraftLimit = newLimit;
 }
 

@@ -1,17 +1,18 @@
 #include "SavingsAccount.hpp"
 
 void SavingsAccount::deposit(double amount) {
+    std::lock_guard<std::mutex> lock(mtx);
     balance += amount;
     std::cout << "New Balance: $" << balance << std::endl;
 }
 
 void SavingsAccount::withdraw(double amount) {
+    std::lock_guard<std::mutex> lock(mtx);
     if(balance - amount >= 0){
         balance -= amount;
         std::cout << "New Balance: $" << balance << std::endl;
     }else{
         std::cerr << "Insufficient funds in savings account.\n";
-        return;
     }
 }
 
@@ -20,6 +21,7 @@ void SavingsAccount::display() const {
 }
 
 void SavingsAccount::applyInterest() {
+    std::lock_guard<std::mutex> lock(mtx);
     double interest = balance * interestRate;
     balance += interest;
 
@@ -28,6 +30,7 @@ void SavingsAccount::applyInterest() {
 }
 
 void SavingsAccount::setInterestRate(double newRate) {
+    std::lock_guard<std::mutex> lock(mtx);
     interestRate = newRate;
 }
 
