@@ -43,15 +43,6 @@ bool validateJsonField(const json& obj, const std::string& key, T& out){
     return true;
 }
 
-bool containsNumber(const std::string& str) {
-    for (char ch : str) {
-        if (std::isdigit(ch)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool Bank::accountExists(int accNum){
     for(const auto& acc : accounts){
         if(acc->getAccountNumber() == accNum){

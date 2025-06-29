@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <mutex>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -26,6 +27,7 @@ public:
     void setHolderName(const std::string& name);
     void setBalance(double newBalance);
 protected:
+    mutable std::mutex mtx;
     int accountNumber;
     std::string holderName;
     double balance;

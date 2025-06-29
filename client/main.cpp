@@ -30,9 +30,9 @@ int main(){
 
     json req;
     req["action"] = "CREATE";
-    req["accountNumber"] = 1001;
-    req["holderName"] = "John Doe";
-    req["balance"] = 1000.00;
+    req["accountNumber"] = 2000;
+    req["holderName"] = "Maury Alberto";
+    req["balance"] = 2000.00;
     req["accountType"] = "SAVINGS";
     req["interestRate"] = 0.02;
 
