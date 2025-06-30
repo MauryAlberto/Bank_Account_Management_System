@@ -23,8 +23,8 @@ void handleClient(int clientSocket){
         try{
             reqJson = json::parse(request);
         }catch(const json::parse_error& e){
-            response["status"] = "error";
-            response["message"] = "Invalid JSON format.";
+            response["status"] = "failed: ";
+            response["message"] = "Invalid JSON format\n";
             sendMessage(clientSocket, response.dump());
             continue;
         }
@@ -51,6 +51,11 @@ void handleClient(int clientSocket){
             response = Bank::getInstance().deleteAllAccounts();
         }else if(action == "EXPORT_JSON"){
             response = Bank::getInstance().exportAllAccountsToFile();
+        }else if(action == "EXIT"){
+            response["status"] = "success: ";
+            response["message"] = "Closing Bank\n";
+            sendMessage(clientSocket, response.dump());
+            break;
         }else{
             response["status"] = "failed: ";
             response["message"] = "Invalid action!"; 

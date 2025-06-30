@@ -18,46 +18,36 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
 
     if(!obj.contains(key)){
         ss << "Missing field '" << key << "'.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return false;
     }
 
     if constexpr(std::is_same_v<T, int>){
         if(!obj[key].is_number_integer()){
             ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
-            msg = {
-                {"status", "failed: "},
-                {"message", ss.str()}
-            };
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
             return false;
         }
     }else if constexpr(std::is_same_v<T, double>){
         if(!obj[key].is_number()){
             ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
-            msg = {
-                {"status", "failed: "},
-                {"message", ss.str()}
-            };
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
             return false;
         }
     }else if constexpr(std::is_same_v<T, std::string>){
         if(!obj[key].is_string()){
             ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
-            msg = {
-                {"status", "failed: "},
-                {"message", ss.str()}
-            };
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
             return false;
         }
     }else{
         ss << "Unsupported type check for key '" << key << "'.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
             return false;
     }
 
@@ -87,20 +77,16 @@ json Bank::deposit(const json& accJson){
     if(acc == nullptr){
         std::stringstream ss;
         ss << "Account #" << accNum << " not found.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
     if(amount < 0.0){
         std::stringstream ss;
         ss << "Cannot deposit negative amount.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -122,20 +108,16 @@ json Bank::withdraw(const json& accJson){
     if(acc == nullptr){
         std::stringstream ss;
         ss << "Account #" << accNum << " not found.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
     if(amount < 0.0){
         std::stringstream ss;
         ss << "Cannot withdraw negative amount.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -155,10 +137,8 @@ json Bank::displayAccount(const json& accJson){
     if(acc == nullptr){
         std::stringstream ss;
         ss << "Account #" << accNum << " not found.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
     
@@ -193,17 +173,13 @@ json Bank::closeAccount(const json& accJson){
         RedisCache::getInstance().deleteAccount(accNum); // delete account from Redis
         saveAllAccounts(); // update Redis
         ss << "Acount #" << accNum << " closed succesfully.\n";
-        msg = {
-            {"status", "success: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "success: ";
+        msg["message"] = ss.str();
         return msg;
     }else{
         ss << "Account #" << accNum << " not found.\n";
-        msg = {
-            {"stauts", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 }
@@ -219,10 +195,8 @@ json Bank::modifyAccount(const json& accJson){
     Account* acc = findAccount(accNum);
     if(acc == nullptr){
         ss << "Account #" << accNum << " not found.\n";
-        msg = {
-            {"stautus", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -258,20 +232,16 @@ json Bank::modifyAccount(const json& accJson){
         }
     }else{
         ss << "Unknown account type.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
     RedisCache::getInstance().saveAccount(*acc);
-   ss << "Account #" << acc->getAccountNumber() << " updated successfully.\n";
-   msg = {
-        {"status", "success: "},
-        {"message", ss.str()}
-   };
-   return msg;
+    ss << "Account #" << acc->getAccountNumber() << " updated successfully.\n";
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
+    return msg;
 }
 
 json Bank::saveAllAccounts() const {
@@ -282,11 +252,8 @@ json Bank::saveAllAccounts() const {
     }
 
     ss << accounts.size() << " account(s) saved to Redis successfully.\n";
-    msg = {
-        {"status", "success: "},
-        {"message", ss.str()}
-    };
-
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
     return msg;
 }
 
@@ -306,10 +273,8 @@ json Bank::loadAllAccounts(){
     }
 
     ss << accounts.size() << " account(s) loaded from Redis sucessfully.\n";
-    msg = {
-        {"status", "success: "},
-        {"message", ss.str()}
-    };
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
     return msg;
 }
 
@@ -340,10 +305,8 @@ json Bank::applyInterestChoice(const json& accJson){
         Account* acc = findAccount(accNum);
         if(acc == nullptr){
             ss << "Account #" << accNum << " not found.\n";
-            msg = {
-                {"status", "failed: "},
-                {"message", ss.str()}
-            };
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
             return msg;
         }
 
@@ -353,10 +316,8 @@ json Bank::applyInterestChoice(const json& accJson){
             RedisCache::getInstance().saveAccount(*acc);
         }else{
             ss << "This is not a savings account.\n";
-            msg = {
-                {"status", "failed: "},
-                {"message", ss.str()}
-            };
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
             return msg;
         }
     }else if(target == "ALL"){
@@ -370,16 +331,12 @@ json Bank::applyInterestChoice(const json& accJson){
             }
         }
         ss << "Interest applied to " << count << " savings account(s).\n";
-        msg = {
-            {"status", "success: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "success: ";
+        msg["message"] = ss.str();
     }else{
         ss << "Invalid target: Must be 'ONE' or 'ALL'.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -394,10 +351,8 @@ json Bank::exportAllAccountsToFile() const {
     
     if(!file.is_open()){
         ss << "Failed to open JSON export file.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -408,10 +363,8 @@ json Bank::exportAllAccountsToFile() const {
 
     file << allAccounts.dump(4);
     ss << accounts.size() << " account(s) exported successfully.\n";
-    msg = {
-        {"status", "success: "},
-        {"message", ss.str()}
-    };
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
     return msg;
 }
 
@@ -431,10 +384,8 @@ json Bank::createAccountFromJson(const json& acc){
 
     if(accountExists(accNum)){
         ss << "Account #" << accNum << " already exists.\n";
-        msg = {
-            {"status", "failed:" },
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -454,10 +405,8 @@ json Bank::createAccountFromJson(const json& acc){
         newAcc = std::make_unique<CheckingAccount>(accNum, name, balance, overdraft);
     }else{
         ss << "Unkown account type. Account creation failed.\n";
-        msg = {
-            {"status", "failed: "},
-            {"message", ss.str()}
-        };
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return msg;
     }
 
@@ -465,10 +414,8 @@ json Bank::createAccountFromJson(const json& acc){
     RedisCache::getInstance().saveAccount(*accounts.back());
 
     ss << "Account #" << accNum << " created successfully.\n";
-    msg = {
-        {"status", "success: "},
-        {"message", ss.str()}
-    };
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
     return msg;
 }
 
@@ -482,9 +429,7 @@ json Bank::deleteAllAccounts(){
     }
 
     ss << accTotal << " account(s) deleted.\n";
-    msg = {
-        {"status", "success: "},
-        {"messsage", ss.str()}
-    };
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
     return msg;
 }
