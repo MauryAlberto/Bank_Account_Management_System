@@ -125,15 +125,21 @@ Bank_Account_Management_System/
 
 ```cpp
 template <typename T>
-bool validateJsonField(const json& obj, const std::string& key, T& out){
+bool validateJsonField(const json& obj, const std::string& key, json& msg, T& out){
+    std::stringstream ss;
+
     if(!obj.contains(key)){
-        std::cerr << "Missing field '" << key << "'.\n";
+        ss << "Missing field '" << key << "'.\n";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
         return false;
     }
 
     if constexpr(std::is_same_v<T, int>){
         if(!obj[key].is_number_integer()){
-            std::cerr << "Invalid type for key: " << key << ". Expected integer.\n";
+            ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
             return false;
         }
     }
