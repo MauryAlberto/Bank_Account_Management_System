@@ -23,3 +23,16 @@ void Account::setHolderName(const std::string& name){
 void Account::setBalance(double newBalance){
     balance = newBalance;
 }
+
+json Account::deposit(double amount){
+    std::lock_guard<std::mutex> lock(mtx);
+    std::stringstream ss;
+    json msg;
+    balance += amount;
+    ss << "New balance of $" << balance << "\n";
+    msg = {
+        {"status", "success: "},
+        {"message", ss.str()}
+    };
+    return msg;
+}

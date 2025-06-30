@@ -32,34 +32,27 @@ void handleClient(int clientSocket){
         std::string action = reqJson["action"];
 
         if(action == "CREATE"){
-            Bank::getInstance().createAccountFromJson(reqJson);
-            response["status"] = "success";
-            response["message"] = "Account created!";
+            response = Bank::getInstance().createAccountFromJson(reqJson);
         }else if(action == "DELETE"){
-            int accNum = reqJson["accountNumber"];
-            Bank::getInstance().closeAccount(accNum);
-            response["status"] = "success";
-            response["message"] = "Account deleted!";
+            response = Bank::getInstance().closeAccount(reqJson);
         }else if(action == "MODIFY"){
-            Bank::getInstance().modifyAccount(reqJson);
-            response["status"] = "success";
-            response["message"] = "Account modified!";
+            response = Bank::getInstance().modifyAccount(reqJson);
         }else if(action == "DEPOSIT"){
-            
+            response = Bank::getInstance().deposit(reqJson);
         }else if(action == "WITHDRAW"){
-
+            response = Bank::getInstance().withdraw(reqJson);
         }else if(action == "APPLY_INTEREST"){
-
+            response = Bank::getInstance().withdraw(reqJson);
         }else if(action == "DISPLAY_ONE"){
-
+            response = Bank::getInstance().displayAccount(reqJson);
         }else if(action == "DISPLAY_ALL"){
-
+            response = Bank::getInstance().displayAllAccounts();
         }else if(action == "DELETE_ALL"){
-
+            response = Bank::getInstance().deleteAllAccounts();
         }else if(action == "EXPORT_JSON"){
-
+            response = Bank::getInstance().exportAllAccountsToFile();
         }else{
-            response["status"] = "failed";
+            response["status"] = "failed: ";
             response["message"] = "Invalid action!"; 
         }
 

@@ -6,14 +6,13 @@ class SavingsAccount : public Account{
 public:
     SavingsAccount(int accNum, const std::string& name, double balance, double rate) : Account(accNum, name, balance), interestRate(rate) {};
 
-    void deposit(double amount) override;
-    void withdraw(double amount) override;
-    void display() const override;
+    json withdraw(double amount) override;
+    json display() const override;
     json toJson() const override;
     std::string getHolderName() const override;
     std::string getAccountType() const override;
 
-    void applyInterest();
+    json applyInterest();
     void setInterestRate(double newRate);
     double getInterestRate() const;
 private:

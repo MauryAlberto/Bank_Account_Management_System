@@ -18,22 +18,22 @@ public:
         return instance;
     }
 
-    bool createAccountFromJson(const json& accJson);
-    bool deposit(const json& accJson);
-    bool withdraw(const json& accJson);
-    bool displayAccount(const json& accJson);
-    void displayAllAccounts();
-    bool closeAccount(const json& accJson);
-    bool modifyAccount(const json& accJson);
+    json createAccountFromJson(const json& accJson);
+    json deposit(const json& accJson);
+    json withdraw(const json& accJson);
+    json displayAccount(const json& accJson);
+    json closeAccount(const json& accJson);
+    json modifyAccount(const json& accJson);
+    json applyInterestChoice(const json& accJson);
 
-    void saveAllAccounts();
-    void loadAllAccounts();
-    void exportAllAccountsToFile();
+    json saveAllAccounts() const;
+    json displayAllAccounts() const;
+    json exportAllAccountsToFile() const;  
+    json loadAllAccounts();
+    json deleteAllAccounts();
 
-    bool applyInterestChoice(const json& accJson);
-
-    bool accountExists(int accNum);
-    Account* findAccount(int accNum);
+    bool accountExists(int accNum) const;
+    Account* findAccount(int accNum) const;
 private:
     std::vector<std::unique_ptr<Account>> accounts;
 

@@ -1,23 +1,36 @@
 #include "CheckingAccount.hpp"
 
-void CheckingAccount::deposit(double amount) {
+json CheckingAccount::withdraw(double amount) {
     std::lock_guard<std::mutex> lock(mtx);
-    balance += amount;
-    std::cout << "New Balance: $" << balance << std::endl;
-}
-
-void CheckingAccount::withdraw(double amount) {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::stringstream ss;
+    json msg;
     if(balance + overdraftLimit - amount >= 0){
         balance -= amount;
-        std::cout << "New Balance: $" << balance << std::endl;
+        ss << "New balance of $" << balance << "\n";
+        msg = {
+            {"status", "success: "},
+            {"message", ss.str()}
+        };
+        return msg;
     }else{
-        std::cerr << "Overdraft limit exceeded.\n";
-    }
+        ss << "Overdraft limit exceeded.\n";
+        msg = {
+            {"status", "success"},
+            {"message", ss.str()}
+        };
+        return msg;
+    }   
 }
 
-void CheckingAccount::display() const {
+json CheckingAccount::display() const {
+    std::stringstream ss;
+    json msg;
     std::cout << "CHECKING " << accountNumber << " " << holderName << " " << balance << " " << overdraftLimit << "\n";
+    msg = {
+        {"status", "success"},
+        {"message", ss.str()}
+    };
+    return msg;
 }
 
 void CheckingAccount::setOverDraftLimit(int newLimit) {

@@ -1,32 +1,50 @@
 #include "SavingsAccount.hpp"
 
-void SavingsAccount::deposit(double amount) {
+json SavingsAccount::withdraw(double amount) {
     std::lock_guard<std::mutex> lock(mtx);
-    balance += amount;
-    std::cout << "New Balance: $" << balance << std::endl;
-}
-
-void SavingsAccount::withdraw(double amount) {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::stringstream ss;
+    json msg;
     if(balance - amount >= 0){
         balance -= amount;
-        std::cout << "New Balance: $" << balance << std::endl;
+        ss << "New balance of $" << balance << "\n";
+        msg = {
+            {"status", "success: "},
+            {"message", ss.str()}
+        };
+        return msg;
     }else{
-        std::cerr << "Insufficient funds in savings account.\n";
+        ss << "Insufficient funds in savings account.\n";
+        msg = {
+            {"status", "success: "},
+            {"message", ss.str()}
+        };
+        return msg;
     }
 }
 
-void SavingsAccount::display() const {
-    std::cout << "SAVINGS " << accountNumber << " " << holderName << " " << balance << " " << interestRate << "\n";
+json SavingsAccount::display() const {
+    std::stringstream ss;
+    json msg;
+    ss << "SAVINGS " << accountNumber << " " << holderName << " " << balance << " " << interestRate << "\n";
+    msg = {
+        {"status", "success: "},
+        {"message", ss.str()}
+    };
+    return msg;
 }
 
-void SavingsAccount::applyInterest() {
+json SavingsAccount::applyInterest() {
     std::lock_guard<std::mutex> lock(mtx);
+    std::stringstream ss;
+    json msg;
     double interest = balance * interestRate;
     balance += interest;
-
-    std::cout << "Interest of $" << interest << " applied to account #" << accountNumber << ".\n";
-    std::cout << "New balance: $" << balance << "\n";
+    ss << "New balance of $" << balance << "\n";
+    msg = {
+        {"status", "success: "},
+        {"message", ss.str()}
+    };
+    return msg;
 }
 
 void SavingsAccount::setInterestRate(double newRate) {

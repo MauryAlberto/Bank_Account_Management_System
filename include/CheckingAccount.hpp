@@ -6,9 +6,8 @@ class CheckingAccount : public Account{
 public:
     CheckingAccount(int accNum, const std::string& name, double balance, int limit) : Account(accNum, name, balance), overdraftLimit(limit) {};
     
-    void deposit(double amount) override;
-    void withdraw(double amount) override;
-    void display() const override;
+    json withdraw(double amount) override;
+    json display() const override;
     json toJson() const override;
     std::string getHolderName() const override;
     std::string getAccountType() const override;
