@@ -16,43 +16,111 @@ template <typename T>
 bool validateJsonField(const json& obj, const std::string& key, json& msg, T& out){
     std::stringstream ss;
 
-    if(!obj.contains(key)){
+    if (!obj.contains(key)){
         ss << "Missing field '" << key << "'.\n";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return false;
     }
 
-    if constexpr(std::is_same_v<T, int>){
-        if(!obj[key].is_number_integer()){
-            ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+    if constexpr (std::is_same_v<T, int>) {
+        const std::string strVal = obj[key].get<std::string>();
+            
+        // Check if the string is a valid integer
+        if (strVal.empty() || strVal.find_first_not_of("-0123456789") != std::string::npos){
+            ss << "Invalid integer format for '" << key << "'. Must contain only digits.\n";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
-    }else if constexpr(std::is_same_v<T, double>){
-        if(!obj[key].is_number()){
-            ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+
+        try {
+            size_t pos = 0;
+            long num = std::stol(strVal, &pos); // Using stol to detect overflow
+            
+            // Ensure the entire string was parsed (no trailing chars)
+            if (pos != strVal.length()){
+                ss << "Invalid integer format for '" << key << "'. Trailing characters detected.\n";
+                msg["status"] = "failed: ";
+                msg["message"] = ss.str();
+                return false;
+            }
+
+            // Check for int range
+            if (num < std::numeric_limits<int>::min() || num > std::numeric_limits<int>::max()){
+                ss << "Integer value for '" << key << "' is out of range.\n";
+                msg["status"] = "failed: ";
+                msg["message"] = ss.str();
+                return false;
+            }
+
+            out = static_cast<int>(num);
+            return true;
+        }
+        catch (const std::invalid_argument&){
+            ss << "Invalid integer format for '" << key << "'.\n";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
-    }else if constexpr(std::is_same_v<T, std::string>){
-        if(!obj[key].is_string()){
-            ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+        catch (const std::out_of_range&){
+            ss << "Integer value for '" << key << "' is out of range.\n";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+    }else if constexpr (std::is_same_v<T, double>){
+        const std::string strVal = obj[key].get<std::string>();
+
+        try {
+            size_t pos = 0;
+            double num = std::stod(strVal, &pos);
+
+            // Ensure the entire string was parsed (no trailing chars)
+            if (pos != strVal.length()){
+                ss << "Invalid double format for '" << key << "'. Trailing characters detected.\n";
+                msg["status"] = "failed: ";
+                msg["message"] = ss.str();
+                return false;
+            }
+
+            out = num;
+            return true;
+        }
+        catch (const std::invalid_argument&){
+            ss << "Invalid double format for '" << key << "'.\n";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+        catch (const std::out_of_range&){
+            ss << "Double value for '" << key << "' is out of range.\n";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+
+        ss << "Invalid type for '" << key << "'. Expected double.\n";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
+        return false;
+    }else if constexpr (std::is_same_v<T, std::string>){
+        if (obj[key].is_string()) {
+            out = obj[key].get<T>();
+            return true;
+        }
+        else{
+            ss << "Invalid type for '" << key << "'. Expected string.\n";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
     }else{
-        ss << "Unsupported type check for key '" << key << "'.\n";
+        ss << "Unsupported type for '" << key << "'.\n";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
-            return false;
+        return false;
     }
-
-    out = obj[key].get<T>();
-    return true;
 }
 
 bool Bank::accountExists(int accNum) const {
@@ -70,6 +138,10 @@ json Bank::deposit(const json& accJson){
     double amount;
 
     if(!validateJsonField(accJson, "accountNumber", msg, accNum)){
+        return msg;
+    }
+
+    if(!validateJsonField(accJson, "amount", msg, amount)){
         return msg;
     }
 
@@ -146,12 +218,39 @@ json Bank::displayAccount(const json& accJson){
     return msg;
 }
 
-json Bank::displayAllAccounts() const {
+/* json Bank::displayAllAccounts() const {
     json allAccounts = json::array();
     for(const auto& acc : accounts){
         allAccounts.push_back(acc->display());
     }
     return allAccounts;
+} */
+
+json Bank::displayAllAccounts() const {
+    json result;
+    result["accounts"] = json::array();
+    
+    for(const auto& acc : accounts) {
+        if(!acc) continue;
+        
+        json accData;
+        accData["accountType"] = acc->getAccountType(); // "SAVINGS" or "CHECKING"
+        accData["accountNumber"] = acc->getAccountNumber();
+        accData["holderName"] = acc->getHolderName();
+        accData["balance"] = acc->getBalance();
+        
+        if(acc->getAccountType() == "SAVINGS") {
+            accData["interestRate"] = dynamic_cast<SavingsAccount*>(acc.get())->getInterestRate();
+        } else {
+            accData["overdraftLimit"] = dynamic_cast<CheckingAccount*>(acc.get())->getOverDraftLimit();
+        }
+        
+        result["accounts"].push_back(accData);
+    }
+    
+    result["status"] = "success";
+    result["message"] = "Accounts retrieved";
+    return result;
 }
 
 json Bank::closeAccount(const json& accJson){
@@ -188,6 +287,7 @@ json Bank::modifyAccount(const json& accJson){
     std::stringstream ss;
     json msg;
     int accNum;
+
     if(!validateJsonField(accJson, "accountNumber", msg, accNum)){
         return msg;
     }
@@ -202,23 +302,29 @@ json Bank::modifyAccount(const json& accJson){
 
     std::string newName;
     if(validateJsonField(accJson, "holderName", msg, newName)){
-        acc->setHolderName(newName);
+        if(newName != "0"){
+            acc->setHolderName(newName);
+        }
     }else{
         return msg;
     }
 
     double newBalance;
     if(validateJsonField(accJson, "balance", msg, newBalance)){
-        acc->setBalance(newBalance);
+        if(newBalance != 0.0){
+            acc->setBalance(newBalance);
+        }
     }else{
         return msg;
     }
 
     if(acc->getAccountType() == "SAVINGS"){
-        double interestRate;
+        double newInterestRate;
         auto* savings = dynamic_cast<SavingsAccount*>(acc);
-        if(validateJsonField(accJson, "interestRate", msg, interestRate)){
-            savings->setInterestRate(interestRate);
+        if(validateJsonField(accJson, "interestRate", msg, newInterestRate)){
+            if(newInterestRate != 0.0){
+                savings->setInterestRate(newInterestRate);
+            }
         }else{
             return msg;
         }
@@ -226,7 +332,9 @@ json Bank::modifyAccount(const json& accJson){
         int newOverdraftLimit;
         auto* checking = dynamic_cast<CheckingAccount*>(acc);
         if(validateJsonField(accJson, "overdraftLimit", msg, newOverdraftLimit)){
-            checking->setOverDraftLimit(newOverdraftLimit);
+            if(newOverdraftLimit != 0){
+                checking->setOverDraftLimit(newOverdraftLimit);
+            }
         }else{
             return msg;
         }
@@ -289,14 +397,14 @@ Account* Bank::findAccount(int accNum) const {
 
 json Bank::applyInterestChoice(const json& accJson){
     json msg;
-    std::string target;
+    std::string choice;
     std::stringstream ss;
 
-    if(!validateJsonField(accJson, "target", msg, target)){
+    if(!validateJsonField(accJson, "choice", msg, choice)){
         return msg;
     }
 
-    if(target == "ONE"){
+    if(choice == "ONE"){
         int accNum;
         if(!validateJsonField(accJson, "accountNumber", msg, accNum)){
             return msg;
@@ -320,7 +428,7 @@ json Bank::applyInterestChoice(const json& accJson){
             msg["message"] = ss.str();
             return msg;
         }
-    }else if(target == "ALL"){
+    }else if(choice == "ALL"){
         int count = 0;
         for(const auto& acc : accounts){
             if(acc->getAccountType() == "SAVINGS"){

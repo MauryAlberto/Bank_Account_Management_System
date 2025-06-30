@@ -27,7 +27,7 @@ json CheckingAccount::display() const {
     json msg;
     std::cout << "CHECKING " << accountNumber << " " << holderName << " " << balance << " " << overdraftLimit << "\n";
     msg = {
-        {"status", "success"},
+        {"status", "success: "},
         {"message", ss.str()}
     };
     return msg;

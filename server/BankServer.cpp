@@ -42,11 +42,13 @@ void handleClient(int clientSocket){
         }else if(action == "WITHDRAW"){
             response = Bank::getInstance().withdraw(reqJson);
         }else if(action == "APPLY_INTEREST"){
-            response = Bank::getInstance().withdraw(reqJson);
+            response = Bank::getInstance().applyInterestChoice(reqJson);
         }else if(action == "DISPLAY_ONE"){
             response = Bank::getInstance().displayAccount(reqJson);
         }else if(action == "DISPLAY_ALL"){
+            std::cout << "[SERVER] Processing DISPLAY_ALL command\n";
             response = Bank::getInstance().displayAllAccounts();
+            std::cout << "[SERVER] Response prepared: " << response.dump() << "\n";
         }else if(action == "DELETE_ALL"){
             response = Bank::getInstance().deleteAllAccounts();
         }else if(action == "EXPORT_JSON"){
@@ -102,6 +104,7 @@ int main(){
     }
 
     std::cout << "[Server] listening on port " << PORT << "...\n";
+    Bank::getInstance().loadAllAccounts();
 
     while(true){
         client_fd = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
