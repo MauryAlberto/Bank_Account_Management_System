@@ -17,7 +17,7 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
     std::stringstream ss;
 
     if (!obj.contains(key)){
-        ss << "Missing field '" << key << "'.\n";
+        ss << "Missing field '" << key << "'";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return false;
@@ -28,7 +28,7 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
             
         // Check if the string is a valid integer
         if (strVal.empty() || strVal.find_first_not_of("-0123456789") != std::string::npos){
-            ss << "Invalid integer format for '" << key << "'. Must contain only digits.\n";
+            ss << "Invalid integer format for '" << key << "'. Must contain only digits.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
@@ -40,7 +40,7 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
             
             // Ensure the entire string was parsed (no trailing chars)
             if (pos != strVal.length()){
-                ss << "Invalid integer format for '" << key << "'. Trailing characters detected.\n";
+                ss << "Invalid integer format for '" << key << "'. Trailing characters detected.";
                 msg["status"] = "failed: ";
                 msg["message"] = ss.str();
                 return false;
@@ -48,7 +48,7 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
 
             // Check for int range
             if (num < std::numeric_limits<int>::min() || num > std::numeric_limits<int>::max()){
-                ss << "Integer value for '" << key << "' is out of range.\n";
+                ss << "Integer value for '" << key << "' is out of range.";
                 msg["status"] = "failed: ";
                 msg["message"] = ss.str();
                 return false;
@@ -58,13 +58,13 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
             return true;
         }
         catch (const std::invalid_argument&){
-            ss << "Invalid integer format for '" << key << "'.\n";
+            ss << "Invalid integer format for '" << key << "'";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
         catch (const std::out_of_range&){
-            ss << "Integer value for '" << key << "' is out of range.\n";
+            ss << "Integer value for '" << key << "' is out of range.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
@@ -78,7 +78,7 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
 
             // Ensure the entire string was parsed (no trailing chars)
             if (pos != strVal.length()){
-                ss << "Invalid double format for '" << key << "'. Trailing characters detected.\n";
+                ss << "Invalid double format for '" << key << "'. Trailing characters detected.";
                 msg["status"] = "failed: ";
                 msg["message"] = ss.str();
                 return false;
@@ -88,19 +88,19 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
             return true;
         }
         catch (const std::invalid_argument&){
-            ss << "Invalid double format for '" << key << "'.\n";
+            ss << "Invalid double format for '" << key << "'";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
         catch (const std::out_of_range&){
-            ss << "Double value for '" << key << "' is out of range.\n";
+            ss << "Double value for '" << key << "' is out of range.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
 
-        ss << "Invalid type for '" << key << "'. Expected double.\n";
+        ss << "Invalid type for '" << key << "'. Expected double.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return false;
@@ -110,13 +110,13 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
             return true;
         }
         else{
-            ss << "Invalid type for '" << key << "'. Expected string.\n";
+            ss << "Invalid type for '" << key << "'. Expected string.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
     }else{
-        ss << "Unsupported type for '" << key << "'.\n";
+        ss << "Unsupported type for '" << key << "'.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return false;
@@ -148,7 +148,7 @@ json Bank::deposit(const json& accJson){
     Account* acc = findAccount(accNum);
     if(acc == nullptr){
         std::stringstream ss;
-        ss << "Account #" << accNum << " not found.\n";
+        ss << "Account #" << accNum << " not found.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -156,7 +156,7 @@ json Bank::deposit(const json& accJson){
 
     if(amount < 0.0){
         std::stringstream ss;
-        ss << "Cannot deposit negative amount.\n";
+        ss << "Cannot deposit negative amount.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -179,7 +179,7 @@ json Bank::withdraw(const json& accJson){
     Account* acc = findAccount(accNum);
     if(acc == nullptr){
         std::stringstream ss;
-        ss << "Account #" << accNum << " not found.\n";
+        ss << "Account #" << accNum << " not found.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -187,7 +187,7 @@ json Bank::withdraw(const json& accJson){
 
     if(amount < 0.0){
         std::stringstream ss;
-        ss << "Cannot withdraw negative amount.\n";
+        ss << "Cannot withdraw negative amount.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -208,7 +208,7 @@ json Bank::displayAccount(const json& accJson){
     Account* acc = findAccount(accNum);
     if(acc == nullptr){
         std::stringstream ss;
-        ss << "Account #" << accNum << " not found.\n";
+        ss << "Account #" << accNum << " not found.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -271,12 +271,12 @@ json Bank::closeAccount(const json& accJson){
         accounts.erase(it); // unique pointer is deleted here
         RedisCache::getInstance().deleteAccount(accNum); // delete account from Redis
         saveAllAccounts(); // update Redis
-        ss << "Acount #" << accNum << " closed succesfully.\n";
+        ss << "Acount #" << accNum << " closed succesfully.";
         msg["status"] = "success: ";
         msg["message"] = ss.str();
         return msg;
     }else{
-        ss << "Account #" << accNum << " not found.\n";
+        ss << "Account #" << accNum << " not found.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -294,7 +294,7 @@ json Bank::modifyAccount(const json& accJson){
 
     Account* acc = findAccount(accNum);
     if(acc == nullptr){
-        ss << "Account #" << accNum << " not found.\n";
+        ss << "Account #" << accNum << " not found.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -339,14 +339,14 @@ json Bank::modifyAccount(const json& accJson){
             return msg;
         }
     }else{
-        ss << "Unknown account type.\n";
+        ss << "Unknown account type.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
     }
 
     RedisCache::getInstance().saveAccount(*acc);
-    ss << "Account #" << acc->getAccountNumber() << " updated successfully.\n";
+    ss << "Account #" << acc->getAccountNumber() << " updated successfully.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -359,7 +359,7 @@ json Bank::saveAllAccounts() const {
         RedisCache::getInstance().saveAccount(*acc);
     }
 
-    ss << accounts.size() << " account(s) saved to Redis successfully.\n";
+    ss << accounts.size() << " account(s) saved to Redis successfully.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -380,7 +380,7 @@ json Bank::loadAllAccounts(){
         }
     }
 
-    ss << accounts.size() << " account(s) loaded from Redis sucessfully.\n";
+    ss << accounts.size() << " account(s) loaded from Redis sucessfully.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -412,7 +412,7 @@ json Bank::applyInterestChoice(const json& accJson){
 
         Account* acc = findAccount(accNum);
         if(acc == nullptr){
-            ss << "Account #" << accNum << " not found.\n";
+            ss << "Account #" << accNum << " not found.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return msg;
@@ -423,7 +423,7 @@ json Bank::applyInterestChoice(const json& accJson){
             msg = savings->applyInterest();
             RedisCache::getInstance().saveAccount(*acc);
         }else{
-            ss << "This is not a savings account.\n";
+            ss << "This is not a savings account.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return msg;
@@ -438,11 +438,11 @@ json Bank::applyInterestChoice(const json& accJson){
                 ++count;
             }
         }
-        ss << "Interest applied to " << count << " savings account(s).\n";
+        ss << "Interest applied to " << count << " savings account(s).";
         msg["status"] = "success: ";
         msg["message"] = ss.str();
     }else{
-        ss << "Invalid target: Must be 'ONE' or 'ALL'.\n";
+        ss << "Invalid target: Must be 'ONE' or 'ALL'.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -458,7 +458,7 @@ json Bank::exportAllAccountsToFile() const {
     std::ofstream file("accounts_export.json", std::ios::trunc);
     
     if(!file.is_open()){
-        ss << "Failed to open JSON export file.\n";
+        ss << "Failed to open JSON export file.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -470,7 +470,7 @@ json Bank::exportAllAccountsToFile() const {
     }
 
     file << allAccounts.dump(4);
-    ss << accounts.size() << " account(s) exported successfully.\n";
+    ss << accounts.size() << " account(s) exported successfully.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -491,7 +491,7 @@ json Bank::createAccountFromJson(const json& acc){
     }
 
     if(accountExists(accNum)){
-        ss << "Account #" << accNum << " already exists.\n";
+        ss << "Account #" << accNum << " already exists.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -512,7 +512,7 @@ json Bank::createAccountFromJson(const json& acc){
         }
         newAcc = std::make_unique<CheckingAccount>(accNum, name, balance, overdraft);
     }else{
-        ss << "Unkown account type. Account creation failed.\n";
+        ss << "Unkown account type. Account creation failed.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -521,7 +521,7 @@ json Bank::createAccountFromJson(const json& acc){
     accounts.push_back(std::move(newAcc));
     RedisCache::getInstance().saveAccount(*accounts.back());
 
-    ss << "Account #" << accNum << " created successfully.\n";
+    ss << "Account #" << accNum << " created successfully.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -536,7 +536,7 @@ json Bank::deleteAllAccounts(){
         RedisCache::getInstance().deleteAccount(acc->getAccountNumber());
     }
 
-    ss << accTotal << " account(s) deleted.\n";
+    ss << accTotal << " account(s) deleted.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;

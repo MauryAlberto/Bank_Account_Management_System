@@ -25,7 +25,7 @@ json SavingsAccount::withdraw(double amount) {
 json SavingsAccount::display() const {
     std::stringstream ss;
     json msg;
-    ss << "SAVINGS " << accountNumber << " " << holderName << " " << balance << " " << interestRate << "\n";
+    ss << "SAVINGS " << accountNumber << " " << holderName << " " << balance << " " << interestRate;
     msg = {
         {"status", "success: "},
         {"message", ss.str()}

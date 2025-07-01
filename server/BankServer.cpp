@@ -46,9 +46,7 @@ void handleClient(int clientSocket){
         }else if(action == "DISPLAY_ONE"){
             response = Bank::getInstance().displayAccount(reqJson);
         }else if(action == "DISPLAY_ALL"){
-            std::cout << "[SERVER] Processing DISPLAY_ALL command\n";
             response = Bank::getInstance().displayAllAccounts();
-            std::cout << "[SERVER] Response prepared: " << response.dump() << "\n";
         }else if(action == "DELETE_ALL"){
             response = Bank::getInstance().deleteAllAccounts();
         }else if(action == "EXPORT_JSON"){

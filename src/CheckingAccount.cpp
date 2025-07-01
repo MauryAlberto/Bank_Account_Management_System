@@ -25,7 +25,7 @@ json CheckingAccount::withdraw(double amount) {
 json CheckingAccount::display() const {
     std::stringstream ss;
     json msg;
-    std::cout << "CHECKING " << accountNumber << " " << holderName << " " << balance << " " << overdraftLimit << "\n";
+    ss << "CHECKING " << accountNumber << " " << holderName << " " << balance << " " << overdraftLimit;
     msg = {
         {"status", "success: "},
         {"message", ss.str()}

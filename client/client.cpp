@@ -15,17 +15,17 @@ void displayStatusMessage(const json& msg) {
         std::string message = msg.at("message");
         
         // Print concatenated result
-        std::cout << status << message;
+        std::cout << status << message << std::endl;
     }
     catch (const json::exception& e) {
         std::cerr << "Error parsing message: " << e.what();
     }
 }
 
-void displayResponse(const json& response){
+void displayResponse(const json& response) {
     try {
         // Check if response contains accounts array
-        if (!response.contains("accounts") || !response["accounts"].is_array()){
+        if (!response.contains("accounts") || !response["accounts"].is_array()) {
             displayStatusMessage(response);
             return;
         }
@@ -44,43 +44,42 @@ void displayResponse(const json& response){
 
         // Display each account
         for (const auto& acc : accounts) {
-            try{
-                // Safely extract account information with defaults
+            try {
                 std::string type = acc.value("accountType", "UNKNOWN");
                 int number = acc.value("accountNumber", 0);
                 std::string holder = acc.value("holderName", "N/A");
                 double balance = acc.value("balance", 0.0);
-                double rateOrLimit = 0.0;
 
-                // Determine which field to show based on account type
-                std::string rateLimitStr;
-                if(type == "SAVINGS"){
-                    rateOrLimit = acc.value("interestRate", 0.0);
-                    rateLimitStr = std::to_string(rateOrLimit * 100) + "%";
-                }else if(type == "CHECKING"){
-                    rateOrLimit = acc.value("overdraftLimit", 0.0);
-                    rateLimitStr = "$" + std::to_string((int)rateOrLimit);
-                }else{
-                    rateLimitStr = "N/A";
+                // Format rate/limit with 2 decimal places
+                std::ostringstream rateLimitStream;
+                rateLimitStream << std::fixed << std::setprecision(2);
+                
+                if (type == "SAVINGS") {
+                    double rate = acc.value("interestRate", 0.0);
+                    rateLimitStream << (rate * 100) << "%";
+                } else if (type == "CHECKING") {
+                    double limit = acc.value("overdraftLimit", 0.0);
+                    rateLimitStream << "$" << limit;
+                } else {
+                    rateLimitStream << "N/A";
                 }
 
-                // Format and display the account
                 std::cout << std::left
                           << std::setw(10) << type
                           << std::setw(10) << number
                           << std::setw(25) << holder
                           << std::setw(15) << std::fixed << std::setprecision(2) << balance
-                          << std::setw(15) << rateLimitStr
+                          << std::setw(15) << rateLimitStream.str()
                           << "\n";
 
-            }catch(const std::exception& e){
+            } catch (const std::exception& e) {
                 std::cerr << "Error displaying account: " << e.what() << "\n";
                 continue;
             }
         }
         std::cout << std::string(75, '=') << "\n";
 
-    }catch(const std::exception& e){
+    } catch (const std::exception& e) {
         std::cerr << "\nFatal error displaying accounts: " << e.what() << "\n";
     }
 }
