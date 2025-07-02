@@ -105,16 +105,8 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
         msg["message"] = ss.str();
         return false;
     }else if constexpr (std::is_same_v<T, std::string>){
-        if (obj[key].is_string()) {
-            out = obj[key].get<T>();
-            return true;
-        }
-        else{
-            ss << "Invalid type for '" << key << "'. Expected string.";
-            msg["status"] = "failed: ";
-            msg["message"] = ss.str();
-            return false;
-        }
+        out = obj[key].get<T>();
+        return true;
     }else{
         ss << "Unsupported type for '" << key << "'.";
         msg["status"] = "failed: ";

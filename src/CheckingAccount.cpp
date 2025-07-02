@@ -6,14 +6,14 @@ json CheckingAccount::withdraw(double amount) {
     json msg;
     if(balance + overdraftLimit - amount >= 0){
         balance -= amount;
-        ss << "New balance of $" << balance << "\n";
+        ss << "New balance of $" << balance;
         msg = {
             {"status", "success: "},
             {"message", ss.str()}
         };
         return msg;
     }else{
-        ss << "Overdraft limit exceeded.\n";
+        ss << "Overdraft limit exceeded.";
         msg = {
             {"status", "success"},
             {"message", ss.str()}

@@ -6,14 +6,14 @@ json SavingsAccount::withdraw(double amount) {
     json msg;
     if(balance - amount >= 0){
         balance -= amount;
-        ss << "New balance of $" << balance << "\n";
+        ss << "New balance of $" << balance;
         msg = {
             {"status", "success: "},
             {"message", ss.str()}
         };
         return msg;
     }else{
-        ss << "Insufficient funds in savings account.\n";
+        ss << "Insufficient funds in savings account.";
         msg = {
             {"status", "success: "},
             {"message", ss.str()}
@@ -39,7 +39,7 @@ json SavingsAccount::applyInterest() {
     json msg;
     double interest = balance * interestRate;
     balance += interest;
-    ss << "New balance of $" << balance << "\n";
+    ss << "New balance of $" << balance;
     msg = {
         {"status", "success: "},
         {"message", ss.str()}
