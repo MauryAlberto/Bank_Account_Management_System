@@ -1,17 +1,5 @@
 #include "Bank.hpp"
 
-template<typename T>
-std::string getTypeName();
-
-template<>
-std::string getTypeName<int>() { return "integer"; }
-
-template<>
-std::string getTypeName<double>() { return "double"; }
-
-template<>
-std::string getTypeName<std::string>() { return "string"; }
-
 template <typename T>
 bool validateJsonField(const json& obj, const std::string& key, json& msg, T& out){
     std::stringstream ss;
