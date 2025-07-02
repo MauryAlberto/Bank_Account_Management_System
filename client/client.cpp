@@ -134,7 +134,7 @@ int main(){
         action = items[0];
         std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-        if(action != "DISPLAY_ALL" && action != "DELETE_ALL" && action != "EXPORT_JSON" && action != "EXIT") {
+        if(action != "APPLY_INTEREST_ALL" && action != "DISPLAY_ALL" && action != "DELETE_ALL" && action != "EXPORT_JSON" && action != "EXIT") {
             if(items.size() < 2) {
                 std::cerr << "Error: Missing required arguments\n";
                 continue;
@@ -201,23 +201,19 @@ int main(){
            request["action"] = action;
            request["accountNumber"] = items[1];
            request["amount"] = items[2];
-        }else if(action == "APPLY_INTEREST"){
+        }else if(action == "APPLY_INTEREST_ONE"){
             /* 
                 formatting:
-                APPLY_INTEREST ALL
-                APPLY_INTEREST ONE accountNumber
+                APPLY_INTEREST_ONE accountNumber
             */
-           if(items[1] == "ALL"){
             request["action"] = action;
-            request["choice"] = items[1];
-           }else if(items[1] == "ONE"){
+            request["accountNumber"] = items[1];
+        }else if(action == "APPLY_INTEREST_ALL"){
+            /* 
+                formatting:
+                APPLY_INTEREST_ALL
+            */
             request["action"] = action;
-            request["choice"] = items[1];
-            request["accountNumber"] = items[2];
-           }else{
-            std::cerr << "Unkown choice\n";
-            continue;
-           }
         }else if(action == "DISPLAY_ONE"){
             /* 
                 formatting:

@@ -24,7 +24,8 @@ public:
     json displayAccount(const json& accJson);
     json closeAccount(const json& accJson);
     json modifyAccount(const json& accJson);
-    json applyInterestChoice(const json& accJson);
+    json applyInterestOne(const json& accJson);
+    json applyInterestAll(const json& accJson);
 
     json saveAllAccounts() const;
     json displayAllAccounts() const;

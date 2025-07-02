@@ -387,59 +387,52 @@ Account* Bank::findAccount(int accNum) const {
     return nullptr;
 }
 
-json Bank::applyInterestChoice(const json& accJson){
+json Bank::applyInterestOne(const json& accJson){
     json msg;
-    std::string choice;
     std::stringstream ss;
 
-    if(!validateJsonField(accJson, "choice", msg, choice)){
+    int accNum;
+    if(!validateJsonField(accJson, "accountNumber", msg, accNum)){
         return msg;
     }
 
-    if(choice == "ONE"){
-        int accNum;
-        if(!validateJsonField(accJson, "accountNumber", msg, accNum)){
-            return msg;
-        }
-
-        Account* acc = findAccount(accNum);
-        if(acc == nullptr){
-            ss << "Account #" << accNum << " not found.";
-            msg["status"] = "failed: ";
-            msg["message"] = ss.str();
-            return msg;
-        }
-
-        if(acc->getAccountType() == "SAVINGS"){
-            auto* savings = dynamic_cast<SavingsAccount*>(acc);
-            msg = savings->applyInterest();
-            RedisCache::getInstance().saveAccount(*acc);
-        }else{
-            ss << "This is not a savings account.";
-            msg["status"] = "failed: ";
-            msg["message"] = ss.str();
-            return msg;
-        }
-    }else if(choice == "ALL"){
-        int count = 0;
-        for(const auto& acc : accounts){
-            if(acc->getAccountType() == "SAVINGS"){
-                auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
-                savings->applyInterest();
-                RedisCache::getInstance().saveAccount(*acc);
-                ++count;
-            }
-        }
-        ss << "Interest applied to " << count << " savings account(s).";
-        msg["status"] = "success: ";
-        msg["message"] = ss.str();
-    }else{
-        ss << "Invalid target: Must be 'ONE' or 'ALL'.";
+    Account* acc = findAccount(accNum);
+    if(acc == nullptr){
+        ss << "Account #" << accNum << " not found.";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
     }
 
+    if(acc->getAccountType() == "SAVINGS"){
+        auto* savings = dynamic_cast<SavingsAccount*>(acc);
+        msg = savings->applyInterest();
+        RedisCache::getInstance().saveAccount(*acc);
+        return msg;
+    }else{
+        ss << "This is not a savings account.";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
+        return msg;
+    }
+}
+
+json Bank::applyInterestAll(const json& accJson){
+    json msg;
+    std::stringstream ss;
+    int count = 0;
+    
+    for(const auto& acc : accounts){
+        if(acc->getAccountType() == "SAVINGS"){
+            auto* savings = dynamic_cast<SavingsAccount*>(acc.get());
+            savings->applyInterest();
+            RedisCache::getInstance().saveAccount(*acc);
+            ++count;
+        }
+    }
+    ss << "Interest applied to " << count << " savings account(s).";
+    msg["status"] = "success: ";
+    msg["message"] = ss.str();
     return msg;
 }
 

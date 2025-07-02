@@ -41,8 +41,10 @@ void handleClient(int clientSocket){
             response = Bank::getInstance().deposit(reqJson);
         }else if(action == "WITHDRAW"){
             response = Bank::getInstance().withdraw(reqJson);
-        }else if(action == "APPLY_INTEREST"){
-            response = Bank::getInstance().applyInterestChoice(reqJson);
+        }else if(action == "APPLY_INTEREST_ONE"){
+            response = Bank::getInstance().applyInterestOne(reqJson);
+        }else if(action == "APPLY_INTEREST_ALL"){
+            response = Bank::getInstance().applyInterestAll(reqJson);
         }else if(action == "DISPLAY_ONE"){
             response = Bank::getInstance().displayAccount(reqJson);
         }else if(action == "DISPLAY_ALL"){
