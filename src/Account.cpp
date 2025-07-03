@@ -29,7 +29,7 @@ json Account::deposit(double amount){
     std::stringstream ss;
     json msg;
     balance += amount;
-    ss << "New balance of $" << balance << "\n";
+    ss << "New balance of $" << balance;
     msg = {
         {"status", "success: "},
         {"message", ss.str()}

@@ -107,167 +107,190 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
+    std::vector<json> testCommands = {
+    { {"action", "CREATE"}, {"accountType", "SAVINGS"}, {"accountNumber", "101"}, {"holderName", "Alice"}, {"balance", "1000"}, {"interestRate", "0.03"} },
+    { {"action", "CREATE"}, {"accountType", "CHECKING"}, {"accountNumber", "102"}, {"holderName", "Bob"}, {"balance", "500"}, {"overdraftLimit", "200"} },
+    { {"action", "DISPLAY_ALL"} },
+    { {"action", "DEPOSIT"}, {"accountNumber", "101"}, {"amount", "200"} },
+    { {"action", "WITHDRAW"}, {"accountNumber", "102"}, {"amount", "100"} },
+    { {"action", "DISPLAY_ONE"}, {"accountNumber", "101"} },
+    { {"action", "APPLY_INTEREST_ONE"}, {"accountNumber", "101"} },
+    { {"action", "APPLY_INTEREST_ALL"} },
+    { {"action", "MODIFY"}, {"accountNumber", "102"}, {"holderName", "Robert"}, {"balance", "600"}, {"overdraftLimit", "300"} },
+    { {"action", "DELETE"}, {"accountNumber", "101"} },
+    { {"action", "EXPORT_JSON"} },
+    { {"action", "DELETE_ALL"} }/* ,
+    { {"action", "EXIT"} } */ // EXIT works
+    };
+
+    size_t testIndex = 0;
+
     while(true){
         json request;
-        std::string line, action, accountType;
-        std::vector<std::string> items;
-        
-        std::cout << SERVER_IP << ":" << PORT << "> ";
-        std::getline(std::cin, line);
-        std::stringstream ss(line);
-        std::string item;
 
-        while(ss >> item){
-            items.push_back(item);
-        }
-
-        if(items.size() > 6){
-            std::cerr << "Error: Too many arguments passed\n";
-            continue;
-        }
-
-        if(items.empty()) {
-            std::cerr << "Error: No command entered\n";
-            continue;
-        }
-
-        action = items[0];
-        std::transform(action.begin(), action.end(), action.begin(), ::toupper);
-
-        if(action != "APPLY_INTEREST_ALL" && action != "DISPLAY_ALL" && action != "DELETE_ALL" && action != "EXPORT_JSON" && action != "EXIT") {
-            if(items.size() < 2) {
-                std::cerr << "Error: Missing required arguments\n";
-                continue;
-            }
-            std::transform(items[1].begin(), items[1].end(), items[1].begin(), ::toupper);
-        }
-
-        if(action == "CREATE" && items.size() == 6){
-            /* 
-                formatting:
-                CREATE ACCOUNT_TYPE accountNumber holderName balance rate/limit
-            */
-            request["action"] = action;
-            request["accountType"] = items[1];
-            request["accountNumber"] = items[2];
-            request["holderName"] = items[3];
-            request["balance"] = items[4];
-            if(items[1] == "SAVINGS"){
-                request["interestRate"] = items[5];
-            }else if(items[1] == "CHECKING"){
-                request["overdraftLimit"] = items[5];
-            }else{
-                std::cerr << "Unkown account type\n";
-                continue;
-            }
-        }else if(action == "DELETE"){
-            /* 
-                formatting:
-                DELETE accountNumber
-            */
-            request["action"] = action;
-            request["accountNumber"] = items[1];
-        }else if(action == "MODIFY"){
-            /* 
-                formatting:
-                MODIFY accountNumber holderName balance rate/limit
-            */
-            request["action"] = action;
-            request["accountNumber"] = items[1];
-            request["holderName"] = items[2];
-            request["balance"] = items[3];
-
-            if(accountType == "SAVINGS"){
-                request["interestRate"] = items[4];
-            }else if(accountType == "CHECKING"){
-                request["overdraft"] = items[4];
-            }else{
-                std::cerr << "Unkown account type\n";
-                continue;
-            }
-        }else if(action == "DEPOSIT"){
-            /* 
-                foramtting:
-                DEPOSIT accountNumber amount
-            */
-           request["action"] = action;
-           request["accountNumber"] = items[1];
-           request["amount"] = items[2];
-        }else if(action == "WITHDRAW"){
-            /* 
-                foramtting:
-                WITHDRAW accountNumber amount
-            */
-           request["action"] = action;
-           request["accountNumber"] = items[1];
-           request["amount"] = items[2];
-        }else if(action == "APPLY_INTEREST_ONE"){
-            /* 
-                formatting:
-                APPLY_INTEREST_ONE accountNumber
-            */
-            request["action"] = action;
-            request["accountNumber"] = items[1];
-        }else if(action == "APPLY_INTEREST_ALL"){
-            /* 
-                formatting:
-                APPLY_INTEREST_ALL
-            */
-            request["action"] = action;
-        }else if(action == "DISPLAY_ONE"){
-            /* 
-                formatting:
-                DISPLAY_ONE accountNumber
-            */
-           request["action"] = action;
-           request["accountNumber"] = items[1];
-        }else if(action == "DISPLAY_ALL"){
-            /* 
-                formatting:
-                DISPLAY_ALL
-            */
-            request["action"] = action;
-            sendMessage(sock, request.dump());
-            std::string rawResponse = recieveMessage(sock);
-            
-            if(rawResponse.empty()){
-                std::cerr << "[ERROR] Empty response from server\n";
-                continue;
-            }
-            
-            try{
-                json response = json::parse(rawResponse);
-                displayResponse(response);
-            }catch(const json::exception& e) {
-                std::cerr << "JSON parse error: " << e.what() << "\n";
-                std::cerr << "Raw response was:\n" << rawResponse << "\n";
-            }
-            continue;  // Skip the duplicate receive at bottom
-        }else if(action == "DELETE_ALL"){
-            /* 
-                formatting:
-                DELETE_ALL
-            */
-           request["action"] = action;
-        }else if(action == "EXPORT_JSON"){
-            /* 
-                formatting:
-                EXPORT_JSON
-            */
-            request["action"] = action;
-        }else if(action == "EXIT"){
-
-            /*
-                formatting:
-                EXIT 
-            */
-            request["action"] = action;
-            sendMessage(sock, request.dump());
-
-            break;
+        if(testIndex < testCommands.size()){
+            request = testCommands[testIndex++];
         }else{
-            std::cerr << "Error: Invalid action!\n";
-            continue;
+            std::string line, action, accountType;
+            std::vector<std::string> items;
+            
+            std::cout << SERVER_IP << ":" << PORT << "> ";
+            std::getline(std::cin, line);
+            std::stringstream ss(line);
+            std::string item;
+
+            while(ss >> item){
+                items.push_back(item);
+            }
+
+            if(items.size() > 6){
+                std::cerr << "Error: Too many arguments passed\n";
+                continue;
+            }
+
+            if(items.empty()) {
+                std::cerr << "Error: No command entered\n";
+                continue;
+            }
+
+            action = items[0];
+            std::transform(action.begin(), action.end(), action.begin(), ::toupper);
+
+            if(action != "APPLY_INTEREST_ALL" && action != "DISPLAY_ALL" && action != "DELETE_ALL" && action != "EXPORT_JSON" && action != "EXIT") {
+                if(items.size() < 2) {
+                    std::cerr << "Error: Missing required arguments\n";
+                    continue;
+                }
+                std::transform(items[1].begin(), items[1].end(), items[1].begin(), ::toupper);
+            }
+
+            if(action == "CREATE" && items.size() == 6){
+                /* 
+                    formatting:
+                    CREATE ACCOUNT_TYPE accountNumber holderName balance rate/limit
+                */
+                request["action"] = action;
+                request["accountType"] = items[1];
+                request["accountNumber"] = items[2];
+                request["holderName"] = items[3];
+                request["balance"] = items[4];
+                if(items[1] == "SAVINGS"){
+                    request["interestRate"] = items[5];
+                }else if(items[1] == "CHECKING"){
+                    request["overdraftLimit"] = items[5];
+                }else{
+                    std::cerr << "Unkown account type\n";
+                    continue;
+                }
+            }else if(action == "DELETE"){
+                /* 
+                    formatting:
+                    DELETE accountNumber
+                */
+                request["action"] = action;
+                request["accountNumber"] = items[1];
+            }else if(action == "MODIFY"){
+                /* 
+                    formatting:
+                    MODIFY accountNumber holderName balance rate/limit
+                */
+                request["action"] = action;
+                request["accountNumber"] = items[1];
+                request["holderName"] = items[2];
+                request["balance"] = items[3];
+
+                if(accountType == "SAVINGS"){
+                    request["interestRate"] = items[4];
+                }else if(accountType == "CHECKING"){
+                    request["overdraft"] = items[4];
+                }else{
+                    std::cerr << "Unkown account type\n";
+                    continue;
+                }
+            }else if(action == "DEPOSIT"){
+                /* 
+                    foramtting:
+                    DEPOSIT accountNumber amount
+                */
+            request["action"] = action;
+            request["accountNumber"] = items[1];
+            request["amount"] = items[2];
+            }else if(action == "WITHDRAW"){
+                /* 
+                    foramtting:
+                    WITHDRAW accountNumber amount
+                */
+            request["action"] = action;
+            request["accountNumber"] = items[1];
+            request["amount"] = items[2];
+            }else if(action == "APPLY_INTEREST_ONE"){
+                /* 
+                    formatting:
+                    APPLY_INTEREST_ONE accountNumber
+                */
+                request["action"] = action;
+                request["accountNumber"] = items[1];
+            }else if(action == "APPLY_INTEREST_ALL"){
+                /* 
+                    formatting:
+                    APPLY_INTEREST_ALL
+                */
+                request["action"] = action;
+            }else if(action == "DISPLAY_ONE"){
+                /* 
+                    formatting:
+                    DISPLAY_ONE accountNumber
+                */
+            request["action"] = action;
+            request["accountNumber"] = items[1];
+            }else if(action == "DISPLAY_ALL"){
+                /* 
+                    formatting:
+                    DISPLAY_ALL
+                */
+                request["action"] = action;
+                sendMessage(sock, request.dump());
+                std::string rawResponse = recieveMessage(sock);
+                
+                if(rawResponse.empty()){
+                    std::cerr << "[ERROR] Empty response from server\n";
+                    continue;
+                }
+                
+                try{
+                    json response = json::parse(rawResponse);
+                    displayResponse(response);
+                }catch(const json::exception& e) {
+                    std::cerr << "JSON parse error: " << e.what() << "\n";
+                    std::cerr << "Raw response was:\n" << rawResponse << "\n";
+                }
+                continue;  // Skip the duplicate receive at bottom
+            }else if(action == "DELETE_ALL"){
+                /* 
+                    formatting:
+                    DELETE_ALL
+                */
+            request["action"] = action;
+            }else if(action == "EXPORT_JSON"){
+                /* 
+                    formatting:
+                    EXPORT_JSON
+                */
+                request["action"] = action;
+            }else if(action == "EXIT"){
+
+                /*
+                    formatting:
+                    EXIT 
+                */
+                request["action"] = action;
+                sendMessage(sock, request.dump());
+
+                break;
+            }else{
+                std::cerr << "Error: Invalid action!\n";
+                continue;
+            }
         }
 
         sendMessage(sock, request.dump());

@@ -55,7 +55,7 @@ void handleClient(int clientSocket){
             response = Bank::getInstance().exportAllAccountsToFile();
         }else if(action == "EXIT"){
             response["status"] = "success: ";
-            response["message"] = "Closing Bank\n";
+            response["message"] = "Closing Bank";
             sendMessage(clientSocket, response.dump());
             break;
         }else{

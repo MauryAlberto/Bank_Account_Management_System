@@ -443,6 +443,7 @@ json Bank::exportAllAccountsToFile() const {
     }
 
     file << allAccounts.dump(4);
+    file.close();
     ss << accounts.size() << " account(s) exported successfully.";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
