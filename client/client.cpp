@@ -120,7 +120,7 @@ int main(){
     { {"action", "DELETE"}, {"accountNumber", "101"} },
     { {"action", "EXPORT_JSON"} },
     { {"action", "DELETE_ALL"} }/* ,
-    { {"action", "EXIT"} } */ // EXIT works
+    { {"action", "EXIT"} }  */ // EXIT works
     };
 
     size_t testIndex = 0;

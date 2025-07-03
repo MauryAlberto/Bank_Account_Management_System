@@ -5,6 +5,7 @@ A robust and extensible **Bank Account Management System** written in **Modern C
 ## Project Overview
 
 This project provides a bank account management system with:
+
 - Server-side account management with Redis persistence
 - Client applications for account operations
 - Support for Savings and Checking accounts
@@ -15,6 +16,7 @@ This project provides a bank account management system with:
 ## Features
 
 ### Account Operations
+
 - Create `Savings` or `Checking` accounts
 - Deposit and withdraw funds
 - Modify account details (name, balance, interest rate, overdraft limit)
@@ -24,11 +26,13 @@ This project provides a bank account management system with:
 - Enforce overdraft limits on checking accounts
 
 ### Data Persistence
+
 - All account data is stored in Redis
 - Automatic synchronization between server and database
 - Efficient data serialization/deserialization
 
 ### Modern C++ Features
+
 - Function templates for type-safe JSON validation
 - Smart pointers for automatic memory management
 - constexpr for compile-time checks
@@ -36,6 +40,7 @@ This project provides a bank account management system with:
 - std::chrono for adding delays
 
 ### Server-Client Architecture
+
 - Dedicated server process managing all accounts
 - Multiple client applications can connect
 - Network communication via TCP/IP
@@ -49,21 +54,21 @@ This project provides a bank account management system with:
 Bank_Account_Management_System/
 │
 ├── client/ # Client application code
-│ ├── main.cpp # Client entry point
-│ └── CMakeLists.txt
+│   ├── main.cpp # Client entry point
+│   └── CMakeLists.txt
 │
 ├── server/ # Server application code
-│ ├── BankServer.cpp # Server implementation
-│ └── CMakeLists.txt
+│   ├── BankServer.cpp # Server implementation
+│   └── CMakeLists.txt
 │
 ├── src/ # Core logic
-│ ├── Account.cpp
-│ ├── Bank.cpp # Main banking logic
-│ ├── CheckingAccount.cpp
-│ ├── CMakeLists.txt
-│ ├── Network.cpp # Network communication
-│ ├── RedisCache.cpp # Redis integration
-│ └── SavingsAccount.cpp
+│   ├── Account.cpp
+│   ├── Bank.cpp # Main banking logic
+│   ├── CheckingAccount.cpp
+│   ├── CMakeLists.txt
+│   ├── Network.cpp # Network communication
+│   ├── RedisCache.cpp # Redis integration
+│   └── SavingsAccount.cpp
 │
 ├── include/ # Header files
 │
@@ -77,42 +82,50 @@ Bank_Account_Management_System/
 ## Concepts & Techniques Used
 
 ### Object-Oriented Programming (OOP)
+
 - Abstract base class `Account` with **pure virtual functions**
 - Derived classes `SavingsAccount` and `CheckingAccount` implement polymorphic behavior
 - Encapsulation of account logic inside respective classes
 - Use of **virtual destructors** for proper cleanup
 
-### Singleton Design Pattern Implmentation
+### Singleton Design Pattern Implementation
+
 - Single instance existence
 - Global access point
 - Thread-safe initialization (via static local variable)
 - Controlled instantiation
 
 ### Dynamic Polymorphism
+
 - Base class pointers allow storing `SavingsAccount` and `CheckingAccount` in the same container
 - Uses `dynamic_cast` for safely downcasting during type-specific operations
 
 ### STL Container
+
 - `std::vector<std::unique_ptr<Account>>` stores all account objects
 - Efficient insertion, removal, and iteration over accounts
 
 ### Smart Pointers
+
 - Uses `std::unique_ptr<Account>` to manage dynamic memory safely
 - Ensures **RAII** (Resource Acquisition Is Initialization) — no manual `delete` needed
 - Prevents memory leaks and ownership ambiguity
 
 ### Redis Integration
+
 - All data persisted in Redis database
 - Automatic synchronization
-- Efficient serializartion/deserialization
+- Efficient serialization/deserialization
 
 ### Server-Client Architecture
+
 - TCP/IP network communication
 - Thread-safe operations
 - JSON-based protocol
 - Separation of concerns
 
 ### JSON Handling
+
 - Type-safe validation with templates
 - Error handling for malformed input
 - Efficient parsing and serialization
@@ -121,9 +134,9 @@ Bank_Account_Management_System/
 
 ## Sample Code Highlights
 
-### Function Template for JSON Validation
-
 ```cpp
+// Example: Function Template for JSON Validation
+
 template <typename T>
 bool validateJsonField(const json& obj, const std::string& key, json& msg, T& out){
     std::stringstream ss;
@@ -149,59 +162,14 @@ bool validateJsonField(const json& obj, const std::string& key, json& msg, T& ou
 }
 ```
 
-### Smart Pointer Usage
-
-```cpp
-std::vector<std::unique_ptr<Account>> accounts;
-std::unique_ptr<Account> newAcc;
-newAcc = std::make_unique<SavingsAccount>(accNum, name, balance, rate);
-accounts.push_back(std::move(newAcc));
-```
-
-### Redis Integration
-
-```cpp
-RedisCache::getInstance().saveAccount(*acc);
-auto account = Redis::Cache::getInstance().loadAccount(accNum);
-```
-
-### Bank Singleton Implementation
-```cpp
-class Bank {
-public:
-    static Bank& getInstance() {
-        static Bank instance;  // Thread-safe initialization
-        return instance;
-    }
-private:
-    Bank() = default;                   // Private constructor
-    Bank(const Bank&) = delete;         // Delete copy constructor
-    Bank& operator=(const Bank&) = delete; // Delete assignment operator
-};
-```
-
-### RedisCache Singleton Implementation
-```cpp
-class RedisCache {
-public:
-    static RedisCache& getInstance() {
-        static RedisCache instance;  // Thread-safe initialization
-        return instance;
-    }
-private:
-    RedisCache();                   // Private constructor
-    RedisCache(const RedisCache&) = delete; // Delete copy constructor
-    RedisCache& operator=(const RedisCache&) = delete; // Delete assignment operator
-};
-```
-
 ---
 
 ## Running the Program
 
 ### Requirements
+
 - C++17 or higher compiler
-- CMake 
+- CMake
 - Redis server
 - redis-plus-plus
 - nlohmann/json
@@ -230,9 +198,48 @@ redis-server
 
 ---
 
-## What You'll Learn
+## Command-Line Interface (CLI)
 
-By studying or extending this project, you'll gain experience with:
+Once the client connects to the server, it enters a CLI prompt that accepts structured commands. Each command is translated into a JSON request and sent to the server for processing.
+
+You will see a prompt like:
+
+```
+127.0.0.1:6000>
+```
+
+### Command List
+
+| Command              | Purpose                                    | Usage Example                        | Sample Output                      |
+| -------------------- | ------------------------------------------ | ------------------------------------ | ---------------------------------- |
+| `CREATE`             | Create a new account (Savings or Checking) | `CREATE SAVINGS 101 Bob 1000 0.03`   | `success: Account # created`       |
+| `DISPLAY_ALL`        | Show all accounts in the system            | `DISPLAY_ALL`                        | Formatted list of accounts         |
+| `DISPLAY_ONE`        | Show one specific account                  | `DISPLAY_ONE 101`                    | Details for account 101            |
+| `DEPOSIT`            | Add funds to an account                    | `DEPOSIT 101 200`                    | `success: New balance of $`        |
+| `WITHDRAW`           | Withdraw funds from an account             | `WITHDRAW 101 100`                   | `success: New balance of $`        |
+| `MODIFY`             | Modify an existing account                 | `MODIFY 101 Bob 1500 0.04`           | `success: Account # updated`       |
+| `DELETE`             | Delete an account by account number        | `DELETE 101`                         | `success: Account # closed`        |
+| `DELETE_ALL`         | Deletes all accounts in the system         | `DELETE_ALL`                         | `success: All accounts deleted`    |
+| `APPLY_INTEREST_ONE` | Apply interest to one savings account      | `APPLY_INTEREST_ONE 101`             | `success: New balance of $`        |
+| `APPLY_INTEREST_ALL` | Apply interest to all savings accounts     | `APPLY_INTEREST_ALL`                 | `success: Interest applied to all` |
+| `EXPORT_JSON`        | Export all account data as a JSON dump     | `EXPORT_JSON`                        | `success: All accounts exported`   |
+| `EXIT`               | Closes the client connection               | `EXIT`                               | `success: Closing Bank`            |
+
+### Example Session
+
+```
+127.0.0.1:6000> CREATE SAVINGS 101 Bob 1000 0.03
+success: Account created
+
+127.0.0.1:6000> DEPOSIT 101 200
+success: Deposit successful
+
+127.0.0.1:6000> DISPLAY_ONE 101
+success: SAVINGS 101 Bob 1200 0.03
+
+---
+
+## What You'll Learn
 
 - Real-world class design
 - Data persistence with Redis
@@ -251,3 +258,4 @@ By studying or extending this project, you'll gain experience with:
 - Add SSL/TSL encryption
 
 ---
+

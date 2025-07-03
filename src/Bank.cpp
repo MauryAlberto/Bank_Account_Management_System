@@ -251,12 +251,12 @@ json Bank::closeAccount(const json& accJson){
         accounts.erase(it); // unique pointer is deleted here
         RedisCache::getInstance().deleteAccount(accNum); // delete account from Redis
         saveAllAccounts(); // update Redis
-        ss << "Acount #" << accNum << " closed succesfully.";
+        ss << "Acount #" << accNum << " closed";
         msg["status"] = "success: ";
         msg["message"] = ss.str();
         return msg;
     }else{
-        ss << "Account #" << accNum << " not found.";
+        ss << "Account #" << accNum << " not found";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -274,7 +274,7 @@ json Bank::modifyAccount(const json& accJson){
 
     Account* acc = findAccount(accNum);
     if(acc == nullptr){
-        ss << "Account #" << accNum << " not found.";
+        ss << "Account #" << accNum << " not found";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return msg;
@@ -326,7 +326,7 @@ json Bank::modifyAccount(const json& accJson){
     }
 
     RedisCache::getInstance().saveAccount(*acc);
-    ss << "Account #" << acc->getAccountNumber() << " updated successfully.";
+    ss << "Account #" << acc->getAccountNumber() << " updated";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -339,7 +339,7 @@ json Bank::saveAllAccounts() const {
         RedisCache::getInstance().saveAccount(*acc);
     }
 
-    ss << accounts.size() << " account(s) saved to Redis successfully.";
+    ss << "All accounts saved";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -360,7 +360,7 @@ json Bank::loadAllAccounts(){
         }
     }
 
-    ss << accounts.size() << " account(s) loaded from Redis sucessfully.";
+    ss << "All accounts loaded";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -418,7 +418,7 @@ json Bank::applyInterestAll(const json& accJson){
             ++count;
         }
     }
-    ss << "Interest applied to " << count << " savings account(s).";
+    ss << "Interest applied to all";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -444,7 +444,7 @@ json Bank::exportAllAccountsToFile() const {
 
     file << allAccounts.dump(4);
     file.close();
-    ss << accounts.size() << " account(s) exported successfully.";
+    ss << "All accounts exported";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -495,7 +495,7 @@ json Bank::createAccountFromJson(const json& acc){
     accounts.push_back(std::move(newAcc));
     RedisCache::getInstance().saveAccount(*accounts.back());
 
-    ss << "Account #" << accNum << " created successfully.";
+    ss << "Account #" << accNum << " created";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
@@ -510,7 +510,7 @@ json Bank::deleteAllAccounts(){
         RedisCache::getInstance().deleteAccount(acc->getAccountNumber());
     }
 
-    ss << accTotal << " account(s) deleted.";
+    ss << "All accounts deleted";
     msg["status"] = "success: ";
     msg["message"] = ss.str();
     return msg;
