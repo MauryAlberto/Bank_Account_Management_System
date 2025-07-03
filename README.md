@@ -236,7 +236,7 @@ success: Deposit successful
 
 127.0.0.1:6000> DISPLAY_ONE 101
 success: SAVINGS 101 Bob 1200 0.03
-
+```
 ---
 
 ## What You'll Learn
