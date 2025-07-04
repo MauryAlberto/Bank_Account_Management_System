@@ -113,6 +113,7 @@ int main(){
     { {"action", "DISPLAY_ALL"} },
     { {"action", "DEPOSIT"}, {"accountNumber", "101"}, {"amount", "200"} },
     { {"action", "WITHDRAW"}, {"accountNumber", "102"}, {"amount", "100"} },
+    { {"action", "TRANSFER"}, {"accountNumber1", "101"}, {"accountNumber2", "102"}, {"amount", "100"}},
     { {"action", "DISPLAY_ONE"}, {"accountNumber", "101"} },
     { {"action", "APPLY_INTEREST_ONE"}, {"accountNumber", "101"} },
     { {"action", "APPLY_INTEREST_ALL"} },
@@ -223,6 +224,15 @@ int main(){
             request["action"] = action;
             request["accountNumber"] = items[1];
             request["amount"] = items[2];
+            }else if(action == "TRANSFER"){
+                /* 
+                    formatting:
+                    TRANSFER From_Account# To_Account# amount
+                */
+                request["action"] = action;
+                request["accountNumber1"] = items[1];
+                request["accountNumber2"] = items[2];
+                request["amount"] = items[3];
             }else if(action == "APPLY_INTEREST_ONE"){
                 /* 
                     formatting:

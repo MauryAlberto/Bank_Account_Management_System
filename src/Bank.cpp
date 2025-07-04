@@ -515,3 +515,49 @@ json Bank::deleteAllAccounts(){
     msg["message"] = ss.str();
     return msg;
 }
+
+json Bank::transfer(const json& accJson){
+    int accNum1, accNum2;
+    double amount;
+    json msg;
+    std::stringstream ss;
+
+    if(!validateJsonField(accJson, "accountNumber1", msg, accNum1)){
+        return msg;
+    }
+
+    if(!validateJsonField(accJson, "accountNumber2", msg, accNum2)){
+        return msg;
+    }
+
+    if(!validateJsonField(accJson, "amount", msg, amount)){
+        return msg;
+    }
+
+    Account* acc1 = findAccount(accNum1);
+    Account* acc2 = findAccount(accNum2);
+
+    if(acc1 == nullptr){
+        ss << "Account #" << accNum1 << " not found";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
+        return msg;
+    }else if(acc2 == nullptr){
+        ss << "Account #" << accNum2 << " not found";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
+        return msg;
+    }
+
+    msg = acc2->withdraw(amount);
+
+    if(msg["status"] == "failed: "){
+        return msg;
+    }
+
+    msg.clear();
+    acc1->deposit(amount);
+    msg["status"] = "success: ";
+    msg["message"] = "Transfer successful";
+    return msg;
+}

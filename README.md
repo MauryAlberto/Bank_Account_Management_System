@@ -217,6 +217,7 @@ You will see a prompt like:
 | `DISPLAY_ONE`        | Show one specific account                  | `DISPLAY_ONE 101`                    | Details for account 101            |
 | `DEPOSIT`            | Add funds to an account                    | `DEPOSIT 101 200`                    | `success: New balance of $`        |
 | `WITHDRAW`           | Withdraw funds from an account             | `WITHDRAW 101 100`                   | `success: New balance of $`        |
+| `TRANSFER`           | Transfer funds from an account             | `TRANSFER 101 100 $`                 | `success: Transfer successful`     |
 | `MODIFY`             | Modify an existing account                 | `MODIFY 101 Bob 1500 0.04`           | `success: Account # updated`       |
 | `DELETE`             | Delete an account by account number        | `DELETE 101`                         | `success: Account # closed`        |
 | `DELETE_ALL`         | Deletes all accounts in the system         | `DELETE_ALL`                         | `success: All accounts deleted`    |

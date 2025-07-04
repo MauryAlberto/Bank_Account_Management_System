@@ -21,6 +21,7 @@ public:
     json createAccountFromJson(const json& accJson);
     json deposit(const json& accJson);
     json withdraw(const json& accJson);
+    json transfer(const json& accJson);
     json displayAccount(const json& accJson);
     json closeAccount(const json& accJson);
     json modifyAccount(const json& accJson);
