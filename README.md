@@ -37,7 +37,6 @@ This project provides a bank account management system with:
 - Smart pointers for automatic memory management
 - constexpr for compile-time checks
 - std::thread for handling multiple clients
-- std::chrono for adding delays
 
 ### Server-Client Architecture
 
