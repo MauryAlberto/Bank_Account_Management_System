@@ -120,16 +120,21 @@ int main(){
     { {"action", "MODIFY"}, {"accountNumber", "102"}, {"holderName", "Robert"}, {"balance", "600"}, {"overdraftLimit", "300"} },
     { {"action", "DELETE"}, {"accountNumber", "101"} },
     { {"action", "EXPORT_JSON"} },
-    { {"action", "DELETE_ALL"} }/* ,
-    { {"action", "EXIT"} }  */ // EXIT works
+    { {"action", "DELETE"}, {"accountNumber", "102"} }/* ,
+    { {"action", "DELETE_ALL"} } ,    // DELETE_ALL works
+    { {"action", "EXIT"} } */   // EXIT works
     };
 
     size_t testIndex = 0;
+    char test_yes_no;
+    std::cout << "Would you like to run a test? (y) or (n): ";
+    std::cin >> test_yes_no;
+    std::cin.ignore();
 
     while(true){
         json request;
 
-        if(testIndex < testCommands.size()){
+        if(testIndex < testCommands.size() && test_yes_no == 'y' || test_yes_no == 'Y'){
             request = testCommands[testIndex++];
         }else{
             std::string line, action, accountType;
