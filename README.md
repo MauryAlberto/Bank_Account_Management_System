@@ -141,24 +141,103 @@ template <typename T>
 bool validateJsonField(const json& obj, const std::string& key, json& msg, T& out){
     std::stringstream ss;
 
-    if(!obj.contains(key)){
-        ss << "Missing field '" << key << "'.\n";
+    if (!obj.contains(key)){
+        ss << "Missing field '" << key << "'";
         msg["status"] = "failed: ";
         msg["message"] = ss.str();
         return false;
     }
 
-    if constexpr(std::is_same_v<T, int>){
-        if(!obj[key].is_number_integer()){
-            ss << "Invalid type for key: " << key << ". Expected " << getTypeName<T>() << ".\n";
+    if constexpr (std::is_same_v<T, int>) {
+        const std::string strVal = obj[key].get<std::string>();
+            
+        // Check if the string is a valid integer
+        if (strVal.empty() || strVal.find_first_not_of("-0123456789") != std::string::npos){
+            ss << "Invalid integer format for '" << key << "'. Must contain only digits.";
             msg["status"] = "failed: ";
             msg["message"] = ss.str();
             return false;
         }
+
+        try {
+            size_t pos = 0;
+            long num = std::stol(strVal, &pos); // Using stol to detect overflow
+            
+            // Ensure the entire string was parsed (no trailing chars)
+            if (pos != strVal.length()){
+                ss << "Invalid integer format for '" << key << "'. Trailing characters detected.";
+                msg["status"] = "failed: ";
+                msg["message"] = ss.str();
+                return false;
+            }
+
+            // Check for int range
+            if (num < std::numeric_limits<int>::min() || num > std::numeric_limits<int>::max()){
+                ss << "Integer value for '" << key << "' is out of range.";
+                msg["status"] = "failed: ";
+                msg["message"] = ss.str();
+                return false;
+            }
+
+            out = static_cast<int>(num);
+            return true;
+        }
+        catch (const std::invalid_argument&){
+            ss << "Invalid integer format for '" << key << "'";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+        catch (const std::out_of_range&){
+            ss << "Integer value for '" << key << "' is out of range.";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+    }else if constexpr (std::is_same_v<T, double>){
+        const std::string strVal = obj[key].get<std::string>();
+
+        try {
+            size_t pos = 0;
+            double num = std::stod(strVal, &pos);
+
+            // Ensure the entire string was parsed (no trailing chars)
+            if (pos != strVal.length()){
+                ss << "Invalid double format for '" << key << "'. Trailing characters detected.";
+                msg["status"] = "failed: ";
+                msg["message"] = ss.str();
+                return false;
+            }
+
+            out = num;
+            return true;
+        }
+        catch (const std::invalid_argument&){
+            ss << "Invalid double format for '" << key << "'";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+        catch (const std::out_of_range&){
+            ss << "Double value for '" << key << "' is out of range.";
+            msg["status"] = "failed: ";
+            msg["message"] = ss.str();
+            return false;
+        }
+
+        ss << "Invalid type for '" << key << "'. Expected double.";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
+        return false;
+    }else if constexpr (std::is_same_v<T, std::string>){
+        out = obj[key].get<T>();
+        return true;
+    }else{
+        ss << "Unsupported type for '" << key << "'.";
+        msg["status"] = "failed: ";
+        msg["message"] = ss.str();
+        return false;
     }
-    //... other type checks
-    out = obj[key].get<T>();
-    return true;
 }
 ```
 
@@ -217,7 +296,7 @@ You will see a prompt like:
 | `DISPLAY_ONE`        | Show one specific account                  | `DISPLAY_ONE 101`                    | Details for account 101            |
 | `DEPOSIT`            | Add funds to an account                    | `DEPOSIT 101 200`                    | `success: New balance of $`        |
 | `WITHDRAW`           | Withdraw funds from an account             | `WITHDRAW 101 100`                   | `success: New balance of $`        |
-| `TRANSFER`           | Transfer funds from an account             | `TRANSFER 101 100 $`                 | `success: Transfer successful`     |
+| `TRANSFER`           | Transfer funds from an account             | `TRANSFER 101(to) 100(from) $`       | `success: Transfer successful`     |
 | `MODIFY`             | Modify an existing account                 | `MODIFY 101 Bob 1500 0.04`           | `success: Account # updated`       |
 | `DELETE`             | Delete an account by account number        | `DELETE 101`                         | `success: Account # closed`        |
 | `DELETE_ALL`         | Deletes all accounts in the system         | `DELETE_ALL`                         | `success: All accounts deleted`    |
