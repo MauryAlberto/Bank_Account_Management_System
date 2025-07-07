@@ -24,6 +24,7 @@ This project provides a bank account management system with:
 - Close (delete) accounts
 - Apply interest to savings accounts
 - Enforce overdraft limits on checking accounts
+- Allow transfers between accounts
 
 ### Data Persistence
 
